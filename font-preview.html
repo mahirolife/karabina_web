@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Font Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+JP:wght@300;400&family=Shippori+Mincho:wght@400;500&family=Shippori+Mincho+B1:wght@400;500&family=Zen+Old+Mincho:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #F4E3D3;
+      color: #3b2a1a;
+      padding: 48px 40px;
+      font-family: sans-serif;
+    }
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: #c0622f;
+      font-family: sans-serif;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .en-ref {
+      font-family: 'DM Serif Display', serif;
+      font-size: 52px;
+      line-height: 1.1;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .ref-block {
+      border-bottom: 1px solid rgba(59,42,26,0.15);
+      padding-bottom: 36px;
+      margin-bottom: 40px;
+    }
+    .ref-note {
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 8px;
+      font-family: monospace;
+      letter-spacing: 0.1em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .card {
+      background: rgba(255,255,255,0.35);
+      border: 1px solid rgba(59,42,26,0.1);
+      border-radius: 16px;
+      padding: 28px 32px;
+    }
+    .jp-text {
+      font-size: 48px;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .font-noto       { font-family: 'Noto Serif JP', serif; font-weight: 300; }
+    .font-shippori   { font-family: 'Shippori Mincho', serif; font-weight: 400; }
+    .font-shippori-b1{ font-family: 'Shippori Mincho B1', serif; font-weight: 400; }
+    .font-zen        { font-family: 'Zen Old Mincho', serif; font-weight: 400; }
+    .font-name {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      font-family: monospace;
+    }
+    .rec {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: #c0622f;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ref-block">
+    <div class="label">English reference — DM Serif Display</div>
+    <div class="en-ref">A PLACE WHERE<br>PEOPLE CONNECT</div>
+    <div class="ref-note">Current English font</div>
+  </div>
+
+  <div class="label" style="margin-bottom: 24px;">Japanese options — 人と人が、つながる場所。</div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="jp-text font-noto">人と人が、<br>つながる場所。</div>
+      <div class="font-name">Noto Serif JP · Weight 300</div>
+    </div>
+
+    <div class="card">
+      <div class="jp-text font-shippori">人と人が、<br>つながる場所。</div>
+      <div class="font-name">Shippori Mincho<span class="rec">recommended</span></div>
+    </div>
+
+    <div class="card">
+      <div class="jp-text font-shippori-b1">人と人が、<br>つながる場所。</div>
+      <div class="font-name">Shippori Mincho B1</div>
+    </div>
+
+    <div class="card">
+      <div class="jp-text font-zen">人と人が、<br>つながる場所。</div>
+      <div class="font-name">Zen Old Mincho</div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@1,400;1,500&family=DM+Serif+Display&family=Shippori+Mincho:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Lora", ui-serif, serif;
+  --font-display-heading: "DM Serif Display", ui-serif, serif;
+  --font-display-heading-jp: "Shippori Mincho", ui-serif, serif;
+  
+  --color-cream: #F3E3D3;
+  --color-brown: #4D2C1A;
+  --color-orange: #EB7832;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-brown antialiased selection:bg-orange/90 selection:text-cream font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply uppercase tracking-wider;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-[2000px] mx-auto px-4 lg:px-10;
+  }
+}
+
+/* Custom animations and utils */
+.wavy-text-track {
+  animation: wavy-scroll 20s linear infinite;
+}
+
+@keyframes wavy-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@layer utilities {
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .vertical-rl {
+    writing-mode: vertical-rl;
+  }
+
+  .vertical-lr {
+    writing-mode: vertical-lr;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 10px 15px -3px rgba(210, 127, 77, 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 20px 25px -5px rgba(210, 127, 77, 0.5);
+  }
+}
+

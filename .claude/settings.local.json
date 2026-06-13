@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__list_tables",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm install *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(npm run *)",
+      "Bash(node *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(curl -s http://localhost:3456/)",
+      "Bash(curl -s http://localhost:3000/staff)",
+      "Bash(npx vite *)",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__get_logs",
+      "Bash(npx tsx *)",
+      "Bash(node_modules/.bin/tsc --version)",
+      "Bash(xargs cat)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s https://connect.squareupsandbox.com/v2/locations -H 'Authorization: Bearer EAAAlzEB27e74knle_NZayEhI4sNi9RcidV1_nh4aHUL6PsitqkwbaTmN_F-_J8P' -H 'Square-Version: 2024-01-18')",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(l['id'], l.get\\('name',''\\)\\) for l in data.get\\('locations',[]\\)]\")",
+      "Bash(curl -s 'https://connect.squareupsandbox.com/v2/payments?location_id=L87MYZ4RWZBQG&limit=5' -H 'Authorization: Bearer EAAAlzEB27e74knle_NZayEhI4sNi9RcidV1_nh4aHUL6PsitqkwbaTmN_F-_J8P' -H 'Square-Version: 2024-01-18')",
+      "Skill(run)",
+      "WebFetch(domain:localhost)",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__get_edge_function",
+      "Bash(open *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

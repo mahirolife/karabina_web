@@ -1,0 +1,156 @@
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,400;1,500&family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Playfair+Display:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+
+<style>
+  .font-preview-wrap {
+    background: #3a1f0f;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .hero-mock {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to bottom, #2a1208 0%, #4D2C1A 60%, #6b3c22 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-mock::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('https://images.unsplash.com/photo-1548407260-da850faa41e3?w=800&q=60') center/cover no-repeat;
+    opacity: 0.35;
+  }
+  .mountain-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(77,44,26,0.5) 0%, rgba(77,44,26,0.2) 50%, rgba(77,44,26,0.6) 100%);
+  }
+  .logo-mock {
+    width: 40px;
+    height: 70px;
+    background: linear-gradient(to bottom, rgba(243,227,211,0.15), rgba(235,120,50,0.4));
+    border-radius: 4px 4px 20px 20px;
+    border: 1px solid rgba(243,227,211,0.2);
+    position: relative;
+    z-index: 2;
+    margin-bottom: 8px;
+  }
+  .wavy-svg {
+    width: 100%;
+    height: 80px;
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    z-index: 2;
+  }
+  .font-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(235,120,50,0.8);
+    margin-top: 2px;
+    padding: 0 4px 2px;
+  }
+  .font-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+  .option .content { gap: 4px; }
+
+  /* Override option card style for dark previews */
+  .options .option {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .options .option:hover {
+    background: rgba(255,255,255,0.07);
+  }
+  .options .option.selected {
+    border-color: #EB7832;
+    background: rgba(235,120,50,0.08);
+  }
+</style>
+
+<h2>Wavy Text Font — Cozy Fire Vibe</h2>
+<p class="subtitle">The wavy scrolling text wraps around the hero logo. Which font feels warmest to you?</p>
+
+<div class="options">
+
+  <!-- Option A: Lora Italic -->
+  <div class="option" data-choice="lora" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <div class="font-preview-wrap">
+        <div class="hero-mock">
+          <div class="mountain-overlay"></div>
+          <div class="logo-mock"></div>
+          <svg class="wavy-svg" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg">
+            <path id="wavyA" fill="none" d="M -100,40 C 33,10 166,70 300,40 C 433,10 566,70 700,40 C 833,10 966,70 1100,40" />
+            <text fill="#d9753e" opacity="0.75" font-size="18" font-family="'Lora', Georgia, serif" font-style="italic" letter-spacing="3">
+              <textPath href="#wavyA" startOffset="0%">
+                Karabina — Hidden Restaurant in the Mountain of Annupuri — Karabina — Hidden Restaurant
+              </textPath>
+            </text>
+          </svg>
+        </div>
+      </div>
+      <h3 style="font-family: 'Lora', serif; font-style: italic; color: #F3E3D3;">Lora Italic</h3>
+      <p class="font-desc">Calligraphic roots, warm and handcrafted. Flows naturally on the curve — like ink by firelight.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Cormorant Garamond Italic -->
+  <div class="option" data-choice="cormorant" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <div class="font-preview-wrap">
+        <div class="hero-mock">
+          <div class="mountain-overlay"></div>
+          <div class="logo-mock"></div>
+          <svg class="wavy-svg" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg">
+            <path id="wavyB" fill="none" d="M -100,40 C 33,10 166,70 300,40 C 433,10 566,70 700,40 C 833,10 966,70 1100,40" />
+            <text fill="#d9753e" opacity="0.75" font-size="21" font-family="'Cormorant Garamond', Georgia, serif" font-style="italic" font-weight="300" letter-spacing="3">
+              <textPath href="#wavyB" startOffset="0%">
+                Karabina — Hidden Restaurant in the Mountain of Annupuri — Karabina — Hidden Restaurant
+              </textPath>
+            </text>
+          </svg>
+        </div>
+      </div>
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: #F3E3D3;">Cormorant Garamond Italic</h3>
+      <p class="font-desc">Ultra-thin, romantic, candlelit. The fine strokes glow against dark backgrounds — intimate and luxurious.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Playfair Display Italic -->
+  <div class="option" data-choice="playfair" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <div class="font-preview-wrap">
+        <div class="hero-mock">
+          <div class="mountain-overlay"></div>
+          <div class="logo-mock"></div>
+          <svg class="wavy-svg" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg">
+            <path id="wavyC" fill="none" d="M -100,40 C 33,10 166,70 300,40 C 433,10 566,70 700,40 C 833,10 966,70 1100,40" />
+            <text fill="#d9753e" opacity="0.75" font-size="18" font-family="'Playfair Display', Georgia, serif" font-style="italic" letter-spacing="2.5">
+              <textPath href="#wavyC" startOffset="0%">
+                Karabina — Hidden Restaurant in the Mountain of Annupuri — Karabina — Hidden Restaurant
+              </textPath>
+            </text>
+          </svg>
+        </div>
+      </div>
+      <h3 style="font-family: 'Playfair Display', serif; font-style: italic; color: #F3E3D3;">Playfair Display Italic</h3>
+      <p class="font-desc">High-contrast strokes, bold personality. Dramatic and warm — feels like a restaurant sign lit by an open fire.</p>
+    </div>
+  </div>
+
+</div>

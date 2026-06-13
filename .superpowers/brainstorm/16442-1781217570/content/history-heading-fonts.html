@@ -1,0 +1,168 @@
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=DM+Serif+Display&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+  .section-mock {
+    background: #F4E3D3;
+    border-radius: 16px;
+    padding: 32px 36px 28px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .section-mock::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('/images/quotes_bg.png') center/cover no-repeat;
+    opacity: 0.5;
+  }
+  .mock-inner {
+    position: relative;
+    z-index: 1;
+  }
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: #EB7832;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: rgba(77,44,26,0.2);
+  }
+  .mock-body {
+    font-size: 12px;
+    color: rgba(77,44,26,0.7);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-top: 14px;
+    max-width: 360px;
+    font-family: 'Inter', sans-serif;
+  }
+  .font-tag {
+    font-size: 10px;
+    color: rgba(77,44,26,0.4);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Font A: Lora */
+  .heading-lora {
+    font-family: 'Lora', Georgia, serif;
+    font-size: clamp(22px, 3.5vw, 42px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: #4D2C1A;
+  }
+
+  /* Font B: DM Serif Display */
+  .heading-dm {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(22px, 3.5vw, 42px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: #4D2C1A;
+  }
+
+  /* Font C: Cormorant Garamond */
+  .heading-cormorant {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(26px, 4vw, 50px);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    color: #4D2C1A;
+  }
+
+  /* Current: Inter */
+  .heading-inter {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(22px, 3.5vw, 42px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: #4D2C1A;
+  }
+
+  .option .content { gap: 4px; }
+  .options { gap: 16px; }
+</style>
+
+<h2>History Section Heading Font</h2>
+<p class="subtitle">"A Place Where People Connect" — which feels warmest to you?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="current" onclick="toggleSelect(this)">
+    <div class="letter">↩</div>
+    <div class="content">
+      <div class="section-mock">
+        <div class="mock-inner">
+          <div class="eyebrow">Our Story</div>
+          <div class="heading-inter">A PLACE WHERE<br>PEOPLE CONNECT</div>
+          <div class="mock-body">Karabina is a hidden restaurant nestled in the mountains of Niseko, where fire, food and friendship come together.</div>
+        </div>
+      </div>
+      <h3 style="color:#4D2C1A">Current — Inter</h3>
+      <p class="font-desc" style="color:rgba(77,44,26,0.5)">The existing font. Clean but impersonal — feels like a tech product, not a cozy mountain restaurant.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="lora" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <div class="section-mock">
+        <div class="mock-inner">
+          <div class="eyebrow">Our Story</div>
+          <div class="heading-lora">A Place Where<br>People Connect</div>
+          <div class="mock-body">Karabina is a hidden restaurant nestled in the mountains of Niseko, where fire, food and friendship come together.</div>
+        </div>
+      </div>
+      <h3 style="color:#4D2C1A; font-family:'Lora',serif;">Lora — already loaded</h3>
+      <p class="font-desc" style="color:rgba(77,44,26,0.5)">Warm calligraphic serif. Matches the wavy text font. Zero extra load. Feels like a handwritten menu.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="dm" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <div class="section-mock">
+        <div class="mock-inner">
+          <div class="eyebrow">Our Story</div>
+          <div class="heading-dm">A Place Where<br>People Connect</div>
+          <div class="mock-body">Karabina is a hidden restaurant nestled in the mountains of Niseko, where fire, food and friendship come together.</div>
+        </div>
+      </div>
+      <h3 style="color:#4D2C1A; font-family:'DM Serif Display',serif;">DM Serif Display</h3>
+      <p class="font-desc" style="color:rgba(77,44,26,0.5)">Bold, modern serif with personality. Casual luxury — warm and inviting without being too formal.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="cormorant" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <div class="section-mock">
+        <div class="mock-inner">
+          <div class="eyebrow">Our Story</div>
+          <div class="heading-cormorant">A Place Where<br>People Connect</div>
+          <div class="mock-body">Karabina is a hidden restaurant nestled in the mountains of Niseko, where fire, food and friendship come together.</div>
+        </div>
+      </div>
+      <h3 style="color:#4D2C1A; font-family:'Cormorant Garamond',serif;">Cormorant Garamond</h3>
+      <p class="font-desc" style="color:rgba(77,44,26,0.5)">Ultra-thin, high-contrast strokes. Refined and elegant — feels upscale, almost editorial.</p>
+    </div>
+  </div>
+
+</div>
