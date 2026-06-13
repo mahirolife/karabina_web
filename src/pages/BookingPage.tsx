@@ -846,12 +846,12 @@ export default function BookingPage() {
       {/* Summary Overlay */}
       <AnimatePresence>
         {step === 'summary' && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-brown/95 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[110] flex items-start sm:items-center justify-center p-4 bg-brown/95 backdrop-blur-xl overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="max-w-2xl w-full bg-brown p-8 md:p-12 rounded-[2rem] shadow-2xl border-2 border-cream/20 space-y-8"
+              className="max-w-2xl w-full bg-brown p-6 md:p-12 rounded-[2rem] shadow-2xl border-2 border-cream/20 space-y-6 my-4 sm:my-auto"
             >
               <h2 className="text-3xl font-bold tracking-tight border-b border-cream/10 pb-4 uppercase">
                 {tEn('booking.summary.title')}
