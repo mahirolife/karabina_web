@@ -53,7 +53,7 @@ export function Footer() {
                 href="https://maps.app.goo.gl/vEmkRo9WzezqT4kj7"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full h-24 sm:h-32 md:h-40 rounded-xl overflow-hidden border border-cream/20 mt-2 md:mt-4 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500 shadow-2xl"
+                className="block w-full h-20 sm:h-28 md:h-40 rounded-xl overflow-hidden border border-cream/20 mt-2 md:mt-4 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-500 shadow-2xl"
               >
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2925.321855635817!2d140.6865239!3d42.8449733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5f0a7f6559385011%3A0xe744e889f076c127!2s431-4%20Niseko%2C%20Abuta%20District%2C%20Hokkaido%20048-1511%2C%20Japan!5e0!3m2!1sen!2sjp!4v1714249300000!5m2!1sen!2sjp"
