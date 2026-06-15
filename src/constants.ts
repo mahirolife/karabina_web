@@ -1,7 +1,6 @@
 export const ASSETS = {
-  LOGO: '/images/just_logo.png',
-  // You can add more central image references here
-  NAME: '/images/karabina_name.png',
+  LOGO: '/images/just_logo.webp',
+  NAME: '/images/karabina_name.webp',
   LOGO_CARABINER: '/CARABINER.svg',
   LOGO_FIRE: '/FIRE.svg',
   LOGO_SMOKE: '/SMOKE.svg',
@@ -10,13 +9,13 @@ export const ASSETS = {
   LOGO_NAME_EN: '/NAME_EN.svg',
   LOGO_CREAM_JP: '/CREAM_JP.svg',
   LOGO_CREAM_EN: '/CREAM_EN.svg',
-  YOTEI: '/images/YOTEI.png',
+  YOTEI: '/images/YOTEI.webp',
   HERO_VIDEO: '/hero-video.mp4',
-  KARA_HOUSE: '/images/kara_house.png',
+  KARA_HOUSE: '/images/kara_house.webp',
   ATMOSPHERE: [
-    '/images/atmosphere1.png',
-    '/images/atmosphere2.png',
-    '/images/atmosphere3.png',
-    '/images/atmosphere4.png',
+    '/images/atmosphere1.webp',
+    '/images/atmosphere2.webp',
+    '/images/atmosphere3.webp',
+    '/images/atmosphere4.webp',
   ],
 };

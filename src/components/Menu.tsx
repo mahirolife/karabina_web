@@ -11,13 +11,13 @@ import Autoplay from 'embla-carousel-autoplay';
 import { ASSETS } from '../constants';
 
 const signatureImages = [
-  "/images/zangi.png",
-  "/images/beef_stew.png",
-  "/images/saba.png",
-  "/images/poteto.png",
-  "/images/eel.png",
-  "/images/kakuni.png",
-  "/images/cheesecake.png",
+  "/images/zangi.webp",
+  "/images/beef_stew.webp",
+  "/images/saba.webp",
+  "/images/poteto.webp",
+  "/images/eel.webp",
+  "/images/kakuni.webp",
+  "/images/cheesecake.webp",
 ];
 
 const signatureImagePositions: Record<number, string> = {
@@ -106,9 +106,9 @@ export function Menu({ className }: { className?: string }) {
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/images/quotes_bg.png" 
-          className="w-full h-full object-cover" 
-          alt="" 
+          src="/images/quotes_bg.webp"
+          className="w-full h-full object-cover"
+          alt=""
         />
       </div>
       

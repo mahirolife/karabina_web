@@ -10,11 +10,11 @@ export function HistorySection() {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
 
   return (
-    <section id="about" className="h-screen w-full flex flex-col items-center justify-center bg-[#F4E3D3] text-brown overflow-hidden relative scroll-mt-0 font-sans">
+    <section id="about" className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F4E3D3] text-brown overflow-y-auto md:overflow-hidden relative scroll-mt-0 font-sans">
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/images/quotes_bg.png" 
+          src="/images/quotes_bg.webp"
           className="w-full h-full object-cover" 
           alt="" 
         />
@@ -71,7 +71,7 @@ export function HistorySection() {
             whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, ease: "easeOut" }}
-            className="relative w-full max-w-[260px] md:max-w-sm lg:max-w-lg mx-auto"
+            className="relative w-full max-w-[200px] md:max-w-sm lg:max-w-lg mx-auto"
           >
             <div className="aspect-square bg-white/40 p-3 lg:p-8 rounded-2xl overflow-hidden border border-brown/10 group backdrop-blur-sm shadow-xl">
               <div className="embla w-full h-full" ref={emblaRef}>
