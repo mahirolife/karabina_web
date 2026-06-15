@@ -6,6 +6,7 @@ import { Hero } from '../components/Hero';
 import { Menu } from '../components/Menu';
 import { HistorySection } from '../components/HistorySection';
 import { Footer } from '../components/Footer';
+import { OpenDatesSection } from '../components/OpenDatesSection';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function LandingPage() {
@@ -20,7 +21,7 @@ export default function LandingPage() {
   // Parallax effect for the first section (Hero)
   // As we scroll from 0 to 1 in the document, we scale down the hero
   // We want the hero to shrink specifically when the next section is coming up
-  // Since there are 5 sections, 1/5 = 0.2
+  // Since there are 6 sections, 1/6 ≈ 0.167 — using 0.2 keeps a smooth feel
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.7]);
   const heroY = useTransform(scrollYProgress, [0, 0.2], ["0%", "20%"]);
@@ -42,8 +43,8 @@ export default function LandingPage() {
       // Calculate if we're at the top (Hero) or at the bottom (Footer)
       const isAtTop = scrollPos < 50;
       // We start becoming transparent as soon as the footer section starts to snap in
-      // 5 sections total, so the last section starts at 4 * clientHeight
-      const isAtFooter = scrollPos > 3.8 * clientHeight;
+      // 6 sections total, so the last section starts at 5 * clientHeight
+      const isAtFooter = scrollPos > 4.8 * clientHeight;
 
       // Navbar is colored ONLY when in the middle sections
       setIsScrolled(!isAtTop && !isAtFooter);
@@ -58,16 +59,16 @@ export default function LandingPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="h-screen relative selection:bg-brown selection:text-cream"
+      className="h-[100dvh] relative selection:bg-brown selection:text-cream"
     >
       <Nav forceScrolled={isScrolled} />
       
       <div 
         ref={containerRef}
-        className="h-screen overflow-y-auto snap-y snap-mandatory"
+        className="h-[100dvh] overflow-y-auto snap-y snap-mandatory"
       >
         {/* 1. HERO SECTION */}
-        <div className="snap-start h-screen w-full relative overflow-hidden bg-brown">
+        <div className="snap-start h-[100dvh] w-full relative overflow-hidden bg-brown">
           <motion.div 
             style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
             className="w-full h-full"
@@ -77,16 +78,16 @@ export default function LandingPage() {
         </div>
 
         {/* 2. HISTORY SECTION */}
-        <div className="snap-start h-screen w-full relative z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+        <div className="snap-start h-[100dvh] w-full relative z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
           <HistorySection />
         </div>
 
         {/* 3. RESERVE NOW SECTION */}
-        <section className="snap-start h-screen w-full relative overflow-hidden bg-brown z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+        <section className="snap-start h-[100dvh] w-full relative overflow-hidden bg-brown z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
           <picture>
-            <source media="(min-width: 768px)" srcSet="/images/page_break.png" />
-            <img 
-              src="/images/karabina_mobile.png" 
+            <source media="(min-width: 768px)" srcSet="/images/page_break.webp" />
+            <img
+              src="/images/karabina_mobile.webp"
               className="w-full h-full object-cover object-center opacity-60 scale-110" 
               alt="Restaurant Atmosphere"
             />
@@ -111,12 +112,17 @@ export default function LandingPage() {
         </section>
 
         {/* 4. MENU SECTION */}
-        <div className="snap-start h-screen w-full relative bg-[#F4E3D3] z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+        <div className="snap-start h-[100dvh] w-full relative bg-[#F4E3D3] z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
           <Menu />
         </div>
 
-        {/* 5. FOOTER SECTION */}
-        <section className="snap-start h-screen w-full relative bg-brown overflow-hidden z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.4)]">
+        {/* 5. OPEN DATES SECTION */}
+        <div className="snap-start h-[100dvh] w-full relative z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+          <OpenDatesSection />
+        </div>
+
+        {/* 6. FOOTER SECTION */}
+        <section className="snap-start h-[100dvh] w-full relative bg-brown overflow-y-auto z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.4)]">
           <motion.div 
             style={{ scale: footerScale, opacity: footerOpacity, y: footerY }}
             className="w-full h-full"

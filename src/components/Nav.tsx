@@ -51,7 +51,7 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
         {isScrolled && (
           <div className="absolute inset-0 z-0 bg-[#F4E3D3]">
             <img 
-              src="/images/quotes_bg.png" 
+              src="/images/quotes_bg.webp"
               className="w-full h-full object-cover"
               alt=""
             />
@@ -133,7 +133,7 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
                 {/* Background Image Layer */}
                 <div className="absolute inset-0 z-0 pointer-events-none">
                   <img 
-                    src="/images/quotes_bg.png" 
+                    src="/images/quotes_bg.webp"
                     className="w-full h-full object-cover"
                     alt=""
                   />
