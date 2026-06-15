@@ -105,20 +105,21 @@ export function Menu({ className }: { className?: string }) {
     <section id="menu" className={cn("h-full w-full flex flex-col items-center justify-center text-brown relative z-10 scroll-mt-0 overflow-hidden bg-[#F4E3D3]", className)}>
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <img
           src="/images/quotes_bg.webp"
           className="w-full h-full object-cover"
           alt=""
+          loading="lazy"
         />
       </div>
       
       {/* 1. HEADER - Adjusted for snapped sections to be below navbar */}
-      <div className="absolute top-20 md:top-23 lg:top-30 flex flex-col items-center z-30 pointer-events-none">
-        <motion.div 
+      <div className="absolute top-16 md:top-20 lg:top-28 flex flex-col items-center z-30 pointer-events-none">
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center overflow-visible"
+          className="relative w-36 h-36 md:w-56 md:h-56 lg:w-64 lg:h-64 flex items-center justify-center overflow-visible"
         >
           {/* Curved Text Above Logo */}
           <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full overflow-visible">
@@ -137,17 +138,18 @@ export function Menu({ className }: { className?: string }) {
           
           {/* Logo centered */}
           <div className="-mt-3 md:-mt-10 lg:-mt-3">
-            <img 
-              src={ASSETS.LOGO} 
-              alt="Karabina Logo" 
-              className="h-22 md:h-20 lg:h-24 w-auto object-contain z-10" 
+            <img
+              src={ASSETS.LOGO}
+              alt="Karabina Logo"
+              className="h-22 md:h-20 lg:h-24 w-auto object-contain z-10"
+              loading="lazy"
             />
           </div>
         </motion.div>
       </div>
 
       {/* 2. EMBLA CAROUSEL WITH CURVE EFFECT */}
-      <div className="w-full mt-60 md:mt-64 lg:mt-72 relative z-10">
+      <div className="w-full mt-48 md:mt-56 lg:mt-64 relative z-10">
         <div className="embla overflow-visible" ref={emblaRef}>
           <div className="flex">
             {tripledItems.map((item, i) => (
@@ -164,6 +166,7 @@ export function Menu({ className }: { className?: string }) {
                         src={tripledImages[i]}
                         className={cn("w-[92%] h-[92%] object-cover rounded-full shadow-inner", signatureImagePositions[i % signatureImages.length])}
                         alt={item.name[lang]}
+                        loading="lazy"
                       />
                     </div>
                   </div>

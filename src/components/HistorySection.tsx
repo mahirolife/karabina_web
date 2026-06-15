@@ -13,10 +13,11 @@ export function HistorySection() {
     <section id="about" className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F4E3D3] text-brown overflow-y-auto md:overflow-hidden relative scroll-mt-0 font-sans">
       {/* Background Image Layer */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <img
           src="/images/quotes_bg.webp"
-          className="w-full h-full object-cover" 
-          alt="" 
+          className="w-full h-full object-cover"
+          alt=""
+          loading="lazy"
         />
       </div>
 
@@ -78,10 +79,11 @@ export function HistorySection() {
                 <div className="embla__container flex w-full h-full">
                   {ASSETS.ATMOSPHERE.map((img, i) => (
                     <div key={i} className="embla__slide flex-[0_0_100%] min-w-0 relative h-full">
-                      <img 
-                        src={img} 
+                      <img
+                        src={img}
                         className="w-full h-full object-cover rounded-xl opacity-100 transition-all duration-1000 group-hover:scale-105"
                         alt={`Atmosphere ${i + 1}`}
+                        loading="lazy"
                       />
                     </div>
                   ))}
