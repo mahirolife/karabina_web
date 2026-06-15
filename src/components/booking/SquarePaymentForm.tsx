@@ -42,14 +42,23 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
     }));
 
     useEffect(() => {
-      if (!window.Square) {
-        setError('Square SDK not loaded');
-        return;
-      }
-
       let cancelled = false;
 
-      const initializePayments = async () => {
+      const loadAndInit = async () => {
+        if (!window.Square) {
+          await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector('script[src*="squarecdn.com"]');
+            if (existing) { resolve(); return; }
+            const script = document.createElement('script');
+            script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Square SDK failed to load'));
+            document.head.appendChild(script);
+          });
+        }
+
+        if (!window.Square || cancelled) return;
+
         try {
           const payments = window.Square.payments(applicationId, locationId);
           const card = await payments.card();
@@ -59,29 +68,27 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
           card.addEventListener('inputEvent', (event: any) => {
             const { field, currentState } = event.detail;
             fieldValidity.current[field] = currentState.isCompletelyValid;
-            const ready = ['cardNumber', 'cvv', 'expirationDate'].every(
-              f => fieldValidity.current[f] === true
-            );
-            onCardReady?.(ready);
+            const allValid = ['cardNumber', 'cvv', 'expirationDate', 'postalCode']
+              .every(f => fieldValidity.current[f]);
+            onCardReady?.(allValid);
           });
         } catch (e) {
           if (!cancelled) {
             console.error('Failed to initialize Square payments', e);
-            setError('Failed to load card input. Please try refreshing.');
+            setError('Payment form failed to load. Please refresh the page.');
           }
         }
       };
 
-      initializePayments();
-
-      return () => {
-        cancelled = true;
-        if (cardRef.current) {
-          cardRef.current.destroy();
-          cardRef.current = null;
+      loadAndInit().catch(e => {
+        if (!cancelled) {
+          console.error('Square SDK load error', e);
+          setError('Payment form failed to load. Please refresh the page.');
         }
-      };
-    }, [applicationId, locationId]);
+      });
+
+      return () => { cancelled = true; };
+    }, [applicationId, locationId, onCardReady]);
 
     return (
       <div className="space-y-4">
