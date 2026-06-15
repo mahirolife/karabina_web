@@ -47,8 +47,13 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
       const loadAndInit = async () => {
         if (!window.Square) {
           await new Promise<void>((resolve, reject) => {
-            const existing = document.querySelector('script[src*="squarecdn.com"]');
-            if (existing) { resolve(); return; }
+            const existing = document.querySelector<HTMLScriptElement>('script[src*="squarecdn.com"]');
+            if (existing) {
+              if (window.Square) { resolve(); return; }
+              existing.addEventListener('load', () => resolve());
+              existing.addEventListener('error', () => reject(new Error('Square SDK failed to load')));
+              return;
+            }
             const script = document.createElement('script');
             script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
             script.onload = () => resolve();
@@ -68,7 +73,7 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
           card.addEventListener('inputEvent', (event: any) => {
             const { field, currentState } = event.detail;
             fieldValidity.current[field] = currentState.isCompletelyValid;
-            const allValid = ['cardNumber', 'cvv', 'expirationDate', 'postalCode']
+            const allValid = ['cardNumber', 'cvv', 'expirationDate']
               .every(f => fieldValidity.current[f]);
             onCardReady?.(allValid);
           });
@@ -87,8 +92,14 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
         }
       });
 
-      return () => { cancelled = true; };
-    }, [applicationId, locationId, onCardReady]);
+      return () => {
+        cancelled = true;
+        if (cardRef.current) {
+          cardRef.current.destroy();
+          cardRef.current = null;
+        }
+      };
+    }, [applicationId, locationId]);
 
     return (
       <div className="space-y-4">
