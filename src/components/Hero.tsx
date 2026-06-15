@@ -57,7 +57,7 @@ export function Hero() {
             muted
             loop
             playsInline
-            preload="none"
+            preload="metadata"
             onError={() => setVideoError(true)}
             className="w-full h-full object-cover hidden lg:block"
           >

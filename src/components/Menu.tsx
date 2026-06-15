@@ -142,7 +142,6 @@ export function Menu({ className }: { className?: string }) {
               src={ASSETS.LOGO}
               alt="Karabina Logo"
               className="h-22 md:h-20 lg:h-24 w-auto object-contain z-10"
-              loading="lazy"
             />
           </div>
         </motion.div>
