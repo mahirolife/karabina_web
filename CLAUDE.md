@@ -13,6 +13,10 @@ npm run preview   # Serve the production build locally
 
 There is no test framework. `npm run lint` (tsc --noEmit) is the only automated correctness check.
 
+## Deployment
+
+Hosted on **Vercel** at `https://www.karabina-niseko.com`. Vercel auto-deploys from the `main` branch on GitHub — pushing to `main` triggers a rebuild and deploy automatically. No manual `npm run build` or server restart needed.
+
 ## Architecture
 
 **Stack:** React 19 + React Router 7 + Tailwind CSS v4, served via an Express server (`server.ts`) that wraps Vite middleware in dev and serves `dist/` in production. Backend is Supabase (Postgres + Edge Functions).
