@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /menu
+Allow: /booking
+Disallow: /staff
+Disallow: /cancel/
+
+Sitemap: https://karabina-niseko.com/sitemap.xml
