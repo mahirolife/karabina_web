@@ -11,6 +11,11 @@ export function Hero() {
   const [error, setError] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
+  const isSlowConnection = (() => {
+    const conn = (navigator as any).connection;
+    return conn && (conn.saveData || ['slow-2g', '2g'].includes(conn.effectiveType));
+  })();
+
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -51,13 +56,14 @@ export function Hero() {
           )}
           alt="Mt. Yotei Snowy landscape"
         />
-        {!videoError && (
+        {!videoError && !isSlowConnection && (
           <video
             autoPlay
             muted
             loop
             playsInline
             preload="metadata"
+            poster={ASSETS.YOTEI}
             onError={() => setVideoError(true)}
             className="w-full h-full object-cover hidden lg:block"
           >
