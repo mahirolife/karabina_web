@@ -305,6 +305,11 @@ export default function BookingPage() {
         setError('Reservations cannot be made more than 3 months in advance. / 3ヶ月以上先のご予約はお受けできません。');
         return;
       }
+      const selectedMonth = new Date(formData.date).getMonth();
+      if (selectedMonth >= 3 && selectedMonth <= 10) {
+        setError('Karabina is only open December through March. / カラビナは12月〜3月のみ営業しています。');
+        return;
+      }
       if (partySize === 1 && !partyOfOneEnabled) {
         setError('Single-guest reservations are not currently available online. Please call us to book.');
         return;

@@ -25,6 +25,7 @@ export default function DatePicker({ value, onChange, max, closedDates = [] }: D
   const maxDate = parseDateLocal(max) ?? addMonths(today, 3);
   const selected = value ? parseDateLocal(value) : undefined;
   const disabledDates = closedDates.map(d => parseDateLocal(d)).filter(Boolean) as Date[];
+  const isOffSeason = (date: Date) => { const m = date.getMonth(); return m >= 3 && m <= 10; };
 
   useEffect(() => {
     if (!open) return;
@@ -83,17 +84,21 @@ export default function DatePicker({ value, onChange, max, closedDates = [] }: D
             mode="single"
             selected={selected}
             onSelect={handleSelect}
-            disabled={[{ before: today }, { after: maxDate }, ...disabledDates]}
+            disabled={[{ before: today }, { after: maxDate }, isOffSeason, ...disabledDates]}
             defaultMonth={selected ?? today}
             formatters={{
               formatCaption: (month) => `${month.getMonth() + 1}/${month.getFullYear()}`,
             }}
-            modifiers={{ closed: disabledDates }}
+            modifiers={{ closed: disabledDates, offSeason: isOffSeason }}
             modifiersStyles={{
               closed: {
                 color: '#f87171',
                 textDecoration: 'line-through',
                 opacity: 0.6,
+              },
+              offSeason: {
+                opacity: 0.2,
+                cursor: 'not-allowed',
               },
             }}
           />
