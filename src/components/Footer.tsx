@@ -1,9 +1,21 @@
+import React from 'react';
 import { Instagram, Phone } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export function Footer() {
   const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleCalendarClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      document.getElementById('calendar')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#calendar');
+    }
+  };
 
   return (
     <footer className="bg-brown text-cream pt-24 md:pt-32 pb-4 md:pb-6 h-full w-full flex flex-col justify-between overflow-y-auto">
@@ -39,12 +51,13 @@ export function Footer() {
             <div className="uppercase tracking-widest text-[10px] md:text-sm space-y-2 md:space-y-4">
               <p className="font-bold">{t('footer.winter_only')}</p>
               <p>{t('footer.daily')}<br />6:00pm — 11:00pm</p>
-              <Link
-                to="/#calendar"
+              <a
+                href="/#calendar"
+                onClick={handleCalendarClick}
                 className="text-[9px] md:text-[10px] text-cream/60 normal-case italic hover:text-cream transition-colors"
               >
                 {t('footer.check_calendar')}
-              </Link>
+              </a>
               <p className="text-[9px] md:text-[10px] text-cream/60 normal-case italic">{t('footer.last_order')}</p>
             </div>
           </div>

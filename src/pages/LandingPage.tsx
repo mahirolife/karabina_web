@@ -33,6 +33,14 @@ export default function LandingPage() {
   const footerY = useTransform(scrollYProgress, [0.8, 1], ["20%", "0%"]);
 
   useEffect(() => {
+    if (window.location.hash === '#calendar') {
+      setTimeout(() => {
+        document.getElementById('calendar')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, []);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
