@@ -831,10 +831,13 @@ export default function BookingPage() {
                           </button>
                           {expandedCourse === 'casual' && (
                             <div className="border-t border-cream/10 pt-3 mt-2 space-y-1.5 text-sm">
-                              {[['前菜','Three Hokkaido Appetizers'],['椀物','Clear Shrimp Shinjo Soup'],['刺身','Three Assorted Seasonal Sashimi'],['焼物',"Chef's Daily Grilled Fish"],['煮物','Yurine Manjū'],['食事','Kamameshi Crab Rice'],['甘味','Yatsuhashi Ice Cream']].map(([jp, en]) => (
+                              {[['前菜','Three Hokkaido Appetizers','北海道前菜三種'],['椀物','Clear Shrimp Shinjo Soup','海老真薯の清汁'],['刺身','Three Assorted Seasonal Sashimi','旬の刺身三種盛り'],['焼物',"Chef's Daily Grilled Fish",'本日の焼き魚'],['煮物','Yurine Manjū','ゆり根饅頭'],['食事','Kamameshi Crab Rice','蟹の釜飯'],['甘味','Yatsuhashi Ice Cream','八つ橋アイスクリーム']].map(([jp, en, jpDish]) => (
                                 <div key={jp} className="flex gap-3">
                                   <span className="text-cream/40 text-xs w-8 shrink-0 pt-0.5">{jp}</span>
-                                  <span className="text-cream/80">{en}</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-cream/80">{en}</span>
+                                    <span className="text-cream/50 text-xs">{jpDish}</span>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -866,10 +869,13 @@ export default function BookingPage() {
                           </button>
                           {expandedCourse === 'premium' && (
                             <div className="border-t border-cream/10 pt-3 mt-2 space-y-1.5 text-sm">
-                              {[['前菜','Three Hokkaido Appetizers'],['寿司','Seared Kinki Nigiri'],['椀物','Clear Shrimp Shinjo Soup'],['刺身','Hokkaido Sashimi & Fresh Sea Urchin'],['焼物','Grilled Wagyu with Mountain Wasabi'],['煮物','Yurine Manjū'],['食事','Kamameshi Crab Rice'],['甘味','Yatsuhashi Ice Cream']].map(([jp, en]) => (
+                              {[['前菜','Three Hokkaido Appetizers','北海道前菜三種'],['寿司','Seared Kinki Nigiri','喜知次の炙り握り'],['椀物','Clear Shrimp Shinjo Soup','海老真薯の清汁'],['刺身','Hokkaido Sashimi & Fresh Sea Urchin','北海道刺身と生うに'],['焼物','Grilled Wagyu with Mountain Wasabi','和牛の焼物 山わさび添え'],['煮物','Yurine Manjū','ゆり根饅頭'],['食事','Kamameshi Crab Rice','蟹の釜飯'],['甘味','Yatsuhashi Ice Cream','八つ橋アイスクリーム']].map(([jp, en, jpDish]) => (
                                 <div key={jp} className="flex gap-3">
                                   <span className="text-cream/40 text-xs w-8 shrink-0 pt-0.5">{jp}</span>
-                                  <span className="text-cream/80">{en}</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-cream/80">{en}</span>
+                                    <span className="text-cream/50 text-xs">{jpDish}</span>
+                                  </div>
                                 </div>
                               ))}
                             </div>
