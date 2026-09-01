@@ -100,7 +100,7 @@ const translations: Record<Language, Record<string, string>> = {
     'footer.contact': 'Contact',
     'footer.opening': 'Opening Hours',
     'footer.winter_only': 'Winter Only',
-    'footer.daily': '不定期 (Irregular)',
+    'footer.daily': 'Irregular',
     'footer.check_calendar': 'Check our calendar for open days →',
     'footer.last_order': 'Last order at 10:00pm',
     'footer.find_us': 'Find Us',

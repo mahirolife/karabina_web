@@ -117,7 +117,7 @@ export default function LandingPage() {
         </div>
 
         {/* 5. OPEN DATES SECTION */}
-        <div className="snap-start h-[100dvh] w-full relative z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
+        <div id="calendar" className="snap-start h-[100dvh] w-full relative z-10 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
           <OpenDatesSection />
         </div>
 

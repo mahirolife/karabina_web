@@ -40,7 +40,7 @@ export function Footer() {
               <p className="font-bold">{t('footer.winter_only')}</p>
               <p>{t('footer.daily')}<br />6:00pm — 11:00pm</p>
               <Link
-                to="/booking"
+                to="/#calendar"
                 className="text-[9px] md:text-[10px] text-cream/60 normal-case italic hover:text-cream transition-colors"
               >
                 {t('footer.check_calendar')}
