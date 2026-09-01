@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Mail, Phone, Users, Calendar, Clock, MessageSquare, Check, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, Mail, Phone, Users, Calendar, Clock, MessageSquare, Check, AlertCircle, ShieldCheck, UtensilsCrossed } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
@@ -30,6 +30,19 @@ const MAX_BOOKING_DATE = (() => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 })();
 
+function firstOpenDate(closedDates: string[] = []): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 400; i++) {
+    const m = d.getMonth();
+    const str = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (str > MAX_BOOKING_DATE) return '';
+    if ((m < 3 || m > 10) && !closedDates.includes(str)) return str;
+    d.setDate(d.getDate() + 1);
+  }
+  return '';
+}
+
 const DEFAULT_SLOT_AVAILABILITY = { '18:00': true, '20:00': true, '20:30': true, '21:00': true };
 const CYCLE_1_TIMES = ['18:00'] as const;
 const CYCLE_2_TIMES = ['20:00', '20:30', '21:00'] as const;
@@ -46,11 +59,12 @@ export default function BookingPage() {
     email: '',
     phone: '',
     partySize: '2',
-    date: localToday(),
+    date: firstOpenDate(),
     cycle: '',
     time: '',
     specialRequests: '',
     policyAgreed: false,
+    course: '' as '' | 'casual' | 'premium',
   });
 
   const [slotAvailability, setSlotAvailability] = useState<Record<string, boolean>>(DEFAULT_SLOT_AVAILABILITY);
@@ -64,6 +78,8 @@ export default function BookingPage() {
   const [isDateClosed, setIsDateClosed] = useState(false);
   const [closedDates, setClosedDates] = useState<string[]>([]);
   const paymentFormRef = React.useRef<SquarePaymentFormHandle>(null);
+  const [courseCapacityUsed, setCourseCapacityUsed] = useState<Record<1|2, number>>({1: 0, 2: 0});
+  const [expandedCourse, setExpandedCourse] = useState<'casual' | 'premium' | null>(null);
 
   useEffect(() => {
     supabase
@@ -72,7 +88,16 @@ export default function BookingPage() {
       .gte('date', localToday())
       .lte('date', MAX_BOOKING_DATE)
       .then(({ data }) => {
-        if (data) setClosedDates(data.map((r: { date: string }) => r.date));
+        if (data) {
+          const dates = data.map((r: { date: string }) => r.date);
+          setClosedDates(dates);
+          setFormData(prev => {
+            if (dates.includes(prev.date)) {
+              return { ...prev, date: firstOpenDate(dates), cycle: '', time: '' };
+            }
+            return prev;
+          });
+        }
       });
   }, []);
 
@@ -155,6 +180,15 @@ export default function BookingPage() {
         }
 
         setSlotAvailability(newAvailability);
+
+        const courseCounts: Record<1|2, number> = {1: 0, 2: 0};
+        for (const r of existingReservations) {
+          if (r.course_menu) {
+            const c = r.cycle as 1 | 2;
+            courseCounts[c] = (courseCounts[c] ?? 0) + (r.course_guest_count ?? r.party_size);
+          }
+        }
+        setCourseCapacityUsed(courseCounts);
       } catch (err) {
         console.error('Availability check failed', err);
         if (!cancelled) {
@@ -172,7 +206,7 @@ export default function BookingPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name === 'date' || name === 'partySize') {
-      setFormData(prev => ({ ...prev, [name]: value, time: '', cycle: '' }));
+      setFormData(prev => ({ ...prev, [name]: value, time: '', cycle: '', course: '' }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -182,7 +216,7 @@ export default function BookingPage() {
   };
 
   const handleTimeClick = (time: string, cycle: '1' | '2') => {
-    setFormData(prev => ({ ...prev, time, cycle }));
+    setFormData(prev => ({ ...prev, time, cycle, course: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -208,6 +242,8 @@ export default function BookingPage() {
     status: 'pending'; notes: string | null;
     shared_table: boolean; shared_table_consent: boolean;
     square_card_token: string | null; cancellation_token: string;
+    course_menu?: 'casual' | 'premium' | null;
+    course_guest_count?: number | null;
   }) => {
     const cleanedRow = reservationRow.square_card_token === 'dev-token-bypass'
       ? { ...reservationRow, square_card_token: null }
@@ -377,6 +413,8 @@ export default function BookingPage() {
         shared_table_consent: false,
         square_card_token: paymentToken,
         cancellation_token: crypto.randomUUID(),
+        course_menu: (formData.course as 'casual' | 'premium') || null,
+        course_guest_count: formData.course ? partySize : null,
       });
     } catch (err: any) {
       setError(err.message ?? 'An unexpected error occurred.');
@@ -384,6 +422,18 @@ export default function BookingPage() {
       setIsSubmitting(false);
     }
   };
+
+  const selectedCycle = formData.cycle ? (parseInt(formData.cycle) as 1 | 2) : null;
+  const courseDeadlinePassed = (() => {
+    if (!formData.date) return true;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const resDate = new Date(formData.date);
+    return Math.floor((resDate.getTime() - today.getTime()) / 86400000) < 3;
+  })();
+  const courseAvailableForCycle =
+    selectedCycle !== null &&
+    !courseDeadlinePassed &&
+    (10 - (courseCapacityUsed[selectedCycle] ?? 0)) >= parseInt(formData.partySize);
 
   const isFormValid =
     formData.fullName.trim() !== '' &&
@@ -449,6 +499,14 @@ export default function BookingPage() {
                 </span>
                 <strong>{formData.partySize}</strong>
               </p>
+              {formData.course && (
+                <p className="flex justify-between">
+                  <span className="flex flex-col gap-0">
+                    <span>Course / コース</span>
+                  </span>
+                  <strong>{formData.course === 'casual' ? 'Casual ¥8,000' : 'Premium ¥12,000'}</strong>
+                </p>
+              )}
             </div>
 
             <div className="text-sm text-orange font-medium max-w-sm mx-auto space-y-0.5">
@@ -725,7 +783,123 @@ export default function BookingPage() {
                   </div>
                 </div>
 
-                {/* 3. Special Requests */}
+                {/* 3. Course Menu */}
+                {formData.time && (
+                  <div className="space-y-4">
+                    <label className="text-xs uppercase tracking-widest font-bold flex items-start gap-2">
+                      <UtensilsCrossed className="w-3 h-3 mt-0.5 shrink-0" />
+                      <span className="flex flex-col gap-0.5">
+                        <span>Course Menu</span>
+                        <span className="opacity-70 normal-case tracking-normal font-medium">コース料理（任意）</span>
+                      </span>
+                    </label>
+
+                    {courseDeadlinePassed ? (
+                      <div className="bg-white/5 border border-cream/10 rounded-xl px-4 py-3 text-sm text-cream/50 space-y-0.5">
+                        <p>Course reservations must be made at least 3 days in advance.</p>
+                        <p className="opacity-75">コースのご予約は3日前までとなります。</p>
+                      </div>
+                    ) : !courseAvailableForCycle ? (
+                      <div className="bg-white/5 border border-cream/10 rounded-xl px-4 py-3 text-sm text-cream/50 space-y-0.5">
+                        <p>Course menu is fully booked for this session.</p>
+                        <p className="opacity-75">コースメニューは満席です。</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {/* Casual course card */}
+                        <div
+                          onClick={() => setFormData(prev => ({ ...prev, course: prev.course === 'casual' ? '' : 'casual' }))}
+                          className={cn(
+                            "cursor-pointer border-2 rounded-2xl p-4 transition-all",
+                            formData.course === 'casual' ? "border-orange/60 bg-white/5" : "border-cream/10 hover:border-cream/30"
+                          )}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="text-[11px] text-orange/80 font-medium tracking-wider uppercase">¥8,000 per person</p>
+                              <p className="text-sm opacity-60 mt-0.5">カジュアル和食コース</p>
+                              <p className="font-medium mt-0.5">Casual Japanese Course</p>
+                            </div>
+                            {formData.course === 'casual' && <Check className="w-4 h-4 text-orange mt-1 shrink-0" />}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); setExpandedCourse(expandedCourse === 'casual' ? null : 'casual'); }}
+                            className="text-[11px] text-cream/40 hover:text-cream/70 underline underline-offset-2 transition-colors"
+                          >
+                            {expandedCourse === 'casual' ? 'Hide menu ↑' : 'View menu ↓'}
+                          </button>
+                          {expandedCourse === 'casual' && (
+                            <div className="border-t border-cream/10 pt-3 mt-2 space-y-1.5 text-sm">
+                              {[['前菜','Three Hokkaido Appetizers'],['椀物','Clear Shrimp Shinjo Soup'],['刺身','Three Assorted Seasonal Sashimi'],['焼物',"Chef's Daily Grilled Fish"],['煮物','Yurine Manjū'],['食事','Kamameshi Crab Rice'],['甘味','Yatsuhashi Ice Cream']].map(([jp, en]) => (
+                                <div key={jp} className="flex gap-3">
+                                  <span className="text-cream/40 text-xs w-8 shrink-0 pt-0.5">{jp}</span>
+                                  <span className="text-cream/80">{en}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Premium course card */}
+                        <div
+                          onClick={() => setFormData(prev => ({ ...prev, course: prev.course === 'premium' ? '' : 'premium' }))}
+                          className={cn(
+                            "cursor-pointer border-2 rounded-2xl p-4 transition-all",
+                            formData.course === 'premium' ? "border-orange/60 bg-white/5" : "border-cream/10 hover:border-cream/30"
+                          )}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="text-[11px] text-orange/80 font-medium tracking-wider uppercase">¥12,000 per person</p>
+                              <p className="text-sm opacity-60 mt-0.5">プレミアム北海道コース</p>
+                              <p className="font-medium mt-0.5">Premium Hokkaido Course</p>
+                            </div>
+                            {formData.course === 'premium' && <Check className="w-4 h-4 text-orange mt-1 shrink-0" />}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); setExpandedCourse(expandedCourse === 'premium' ? null : 'premium'); }}
+                            className="text-[11px] text-cream/40 hover:text-cream/70 underline underline-offset-2 transition-colors"
+                          >
+                            {expandedCourse === 'premium' ? 'Hide menu ↑' : 'View menu ↓'}
+                          </button>
+                          {expandedCourse === 'premium' && (
+                            <div className="border-t border-cream/10 pt-3 mt-2 space-y-1.5 text-sm">
+                              {[['前菜','Three Hokkaido Appetizers'],['寿司','Seared Kinki Nigiri'],['椀物','Clear Shrimp Shinjo Soup'],['刺身','Hokkaido Sashimi & Fresh Sea Urchin'],['焼物','Grilled Wagyu with Mountain Wasabi'],['煮物','Yurine Manjū'],['食事','Kamameshi Crab Rice'],['甘味','Yatsuhashi Ice Cream']].map(([jp, en]) => (
+                                <div key={jp} className="flex gap-3">
+                                  <span className="text-cream/40 text-xs w-8 shrink-0 pt-0.5">{jp}</span>
+                                  <span className="text-cream/80">{en}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* No course option */}
+                        <div
+                          onClick={() => setFormData(prev => ({ ...prev, course: '' }))}
+                          className={cn(
+                            "cursor-pointer border-2 rounded-2xl px-4 py-3 transition-all text-sm",
+                            formData.course === '' ? "border-cream/30 bg-white/5 text-cream/80" : "border-cream/10 hover:border-cream/20 text-cream/50"
+                          )}
+                        >
+                          No course — à la carte only / コースなし
+                        </div>
+
+                        {formData.course && (
+                          <div className="bg-orange/10 border border-orange/20 rounded-xl px-4 py-3 text-xs text-orange/80 leading-relaxed space-y-1">
+                            <p><strong>Cancellation:</strong> Course reservations are subject to a 100% cancellation fee regardless of notice period.</p>
+                            <p className="opacity-80">コースのキャンセルは予告期間に関わらず100%のキャンセル料が発生します。</p>
+                            <p className="mt-1 opacity-70">All guests in your party will receive the same course. / ご同席の方全員、同じコースをお選びください。</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. Special Requests */}
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-widest font-bold flex items-start gap-2">
                     <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
@@ -878,6 +1052,17 @@ export default function BookingPage() {
                   <p className="text-[10px] uppercase font-bold opacity-40 tracking-widest text-orange">{tEn('booking.summary.party')} / {tJp('booking.summary.party')}</p>
                   <p className="text-xl font-medium">{formData.partySize} {tEn('booking.summary.guests')} / {tJp('booking.summary.guests')}</p>
                 </div>
+                {formData.course && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold opacity-40 tracking-widest text-orange">Course / コース</p>
+                    <p className="text-base font-medium">
+                      {formData.course === 'casual' ? 'Casual Japanese Course — ¥8,000' : 'Premium Hokkaido Course — ¥12,000'}
+                    </p>
+                    <p className="text-xs opacity-50">
+                      {formData.course === 'casual' ? 'カジュアル和食コース' : 'プレミアム北海道コース'} × {formData.partySize} guests
+                    </p>
+                  </div>
+                )}
                 {formData.specialRequests && (
                   <div className="space-y-1 col-span-2">
                     <p className="text-[10px] uppercase font-bold opacity-40 tracking-widest text-orange">{tEn('booking.summary.requests')} / {tJp('booking.summary.requests')}</p>

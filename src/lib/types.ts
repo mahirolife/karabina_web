@@ -40,6 +40,8 @@ export interface Reservation {
   cancelled_at?: string | null;
   charged_at?: string | null;
   charge_amount_yen?: number | null;
+  course_menu?: 'casual' | 'premium' | null;
+  course_guest_count?: number | null;
 }
 
 export interface TableAssignment {

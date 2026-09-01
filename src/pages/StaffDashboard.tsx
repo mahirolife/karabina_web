@@ -14,12 +14,12 @@ import {
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, BookOpen, Users, AlertCircle,
   Calendar as CalendarIcon, X, Plus, Store, Lock, LockOpen,
-  Phone, Mail, GripHorizontal, Clock,
+  Phone, Mail, GripHorizontal, Clock, UtensilsCrossed,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
@@ -100,6 +100,15 @@ async function runPhase2Optimization(
 
 const PHYSICAL_TABLES = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
+const COURSE_COLORS = {
+  casual:  { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-400' },
+  premium: { bg: 'bg-orange-200', text: 'text-orange-900', border: 'border-orange-500' },
+} as const;
+const COURSE_LABELS = {
+  casual:  'コース ¥8k',
+  premium: 'コース ¥12k',
+} as const;
+
 function generateSlots(startH: number, startM: number, endH: number, endM: number, cycle: 1 | 2): Array<{ time: string; cycle: 1 | 2 }> {
   const slots: Array<{ time: string; cycle: 1 | 2 }> = [];
   let h = startH, m = startM;
@@ -139,15 +148,28 @@ export default function StaffDashboard() {
   const [chargeRes, setChargeRes] = useState<Reservation | null>(null);
   const [isCharging, setIsCharging] = useState(false);
   const [chargeError, setChargeError] = useState<string | null>(null);
+  const [chargeAmountYen, setChargeAmountYen] = useState(0);
+  const chargedIdsRef = useRef(new Set<string>());
   const [cancelledHeight, setCancelledHeight] = useState(120);
   const [reassignMode, setReassignMode] = useState(false);
   const [timeChangeMode, setTimeChangeMode] = useState(false);
+  const [courseEditMode, setCourseEditMode] = useState(false);
+  const [courseEditValue, setCourseEditValue] = useState<'' | 'casual' | 'premium'>('');
+  const [courseEditCount, setCourseEditCount] = useState<number>(0);
 
   useEffect(() => {
     if (isAddingRes) setModalCycle(isAddingRes.cycle);
   }, [isAddingRes]);
 
-  useEffect(() => { setReassignMode(false); setTimeChangeMode(false); }, [selectedRes?.id]);
+  useEffect(() => {
+    setReassignMode(false);
+    setTimeChangeMode(false);
+    setCourseEditMode(false);
+    if (selectedRes) {
+      setCourseEditValue(selectedRes.course_menu ?? '');
+      setCourseEditCount(selectedRes.course_guest_count ?? selectedRes.party_size);
+    }
+  }, [selectedRes?.id]);
 
   const isClosed = closedDates.includes(format(selectedDate, 'yyyy-MM-dd'));
   const selectedResAssignment = selectedRes
@@ -156,6 +178,10 @@ export default function StaffDashboard() {
   const totalGuests = reservations.reduce((sum, r) => sum + r.party_size, 0);
   const cycle1Guests = reservations.filter(r => r.cycle === 1).reduce((sum, r) => sum + r.party_size, 0);
   const cycle2Guests = reservations.filter(r => r.cycle === 2).reduce((sum, r) => sum + r.party_size, 0);
+  const courseCounts: Record<1|2, number> = {
+    1: reservations.filter(r => r.cycle === 1 && r.course_menu).reduce((s, r) => s + (r.course_guest_count ?? r.party_size), 0),
+    2: reservations.filter(r => r.cycle === 2 && r.course_menu).reduce((s, r) => s + (r.course_guest_count ?? r.party_size), 0),
+  };
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -379,6 +405,7 @@ export default function StaffDashboard() {
 
   const handleCharge = async () => {
     if (!chargeRes?.square_customer_id || !chargeRes?.square_card_id) return;
+    if (chargedIdsRef.current.has(chargeRes.id)) return;
     setIsCharging(true);
     setChargeError(null);
     try {
@@ -388,16 +415,19 @@ export default function StaffDashboard() {
         body: JSON.stringify({
           square_customer_id: chargeRes.square_customer_id,
           square_card_id: chargeRes.square_card_id,
-          party_size: chargeRes.party_size,
+          amount_yen: chargeAmountYen,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
-      await supabase.from('reservations').update({
-        charged_at: new Date().toISOString(),
-        charge_amount_yen: json.amount_yen,
+      const chargedAt = new Date().toISOString();
+      const { error: updateError } = await supabase.from('reservations').update({
+        charged_at: chargedAt,
+        charge_amount_yen: chargeAmountYen,
       }).eq('id', chargeRes.id);
-      setChargeRes(null);
+      if (updateError) throw new Error('記録に失敗しました: ' + updateError.message);
+      chargedIdsRef.current.add(chargeRes.id);
+      setChargeRes(prev => prev ? { ...prev, charged_at: chargedAt, charge_amount_yen: chargeAmountYen } : null);
       await refreshReservations();
     } catch (e: any) {
       setChargeError(e.message ?? '請求に失敗しました');
@@ -462,6 +492,11 @@ export default function StaffDashboard() {
           return;
         }
       }
+      const courseVal = (formData.get('course') as string) || null;
+      const courseCountVal = formData.get('course_count') as string;
+      const courseGuestCount = courseVal
+        ? (courseCountVal ? parseInt(courseCountVal) : partySize)
+        : null;
       const { data: insertedData, error: resError } = await supabase.from('reservations').insert([{
         name: formData.get('name') as string,
         email: '',
@@ -476,6 +511,8 @@ export default function StaffDashboard() {
         shared_table_consent: false,
         square_card_token: null,
         locked: isSlotAdd,
+        course_menu: courseVal,
+        course_guest_count: courseGuestCount,
       }]).select().single();
       if (resError || !insertedData) { setAddError('保存に失敗しました: ' + (resError?.message ?? '')); return; }
 
@@ -504,6 +541,7 @@ export default function StaffDashboard() {
   };
 
   const toggleDateHoliday = async (date: Date) => {
+    if (!isSameMonth(date, calendarMonth)) return;
     const dateStr = format(date, 'yyyy-MM-dd');
     if (closedDates.includes(dateStr)) {
       const { error } = await supabase.from('closed_dates').delete().eq('date', dateStr);
@@ -715,7 +753,7 @@ export default function StaffDashboard() {
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -778,6 +816,25 @@ export default function StaffDashboard() {
                     {selectedRes.notes}
                   </div>
                 )}
+
+                <div className="bg-cream/30 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase font-bold opacity-40 mb-2">コース / Course</p>
+                  {selectedRes.course_menu ? (
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-xs font-bold px-2 py-0.5 rounded-full border",
+                        COURSE_COLORS[selectedRes.course_menu].bg,
+                        COURSE_COLORS[selectedRes.course_menu].text,
+                        COURSE_COLORS[selectedRes.course_menu].border,
+                      )}>
+                        {selectedRes.course_menu === 'casual' ? 'Casual Japanese — ¥8,000' : 'Premium Hokkaido — ¥12,000'}
+                      </span>
+                      <span className="text-sm font-bold">×{selectedRes.course_guest_count ?? selectedRes.party_size}名</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm opacity-40">コースなし</p>
+                  )}
+                </div>
 
                 {selectedResAssignment?.requires_staff_review && (
                   <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-sm text-orange-900 flex items-start gap-2">
@@ -842,10 +899,10 @@ export default function StaffDashboard() {
                       <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto">
                         {tableGraph && (() => {
                           const currentAsgName = selectedResAssignment?.table_name;
-                          const options = [
+                          const options = [...new Set([
                             ...tableGraph.tables.map(t => t.table_name),
                             ...tableGraph.combinations.map(c => c.combination_name),
-                          ];
+                          ])];
                           return options.map(name => {
                             const isCurrent = currentAsgName === name ||
                               physicalTables(currentAsgName ?? '').some(p => physicalTables(name).includes(p));
@@ -942,6 +999,64 @@ export default function StaffDashboard() {
                     </div>
                   )}
 
+                  {/* Course edit */}
+                  {!courseEditMode ? (
+                    <button
+                      onClick={() => { setCourseEditMode(true); setReassignMode(false); setTimeChangeMode(false); }}
+                      className="w-full flex items-center gap-2 py-2.5 px-3 rounded-xl border border-brown/20 hover:border-brown/40 text-brown/60 hover:text-brown text-xs font-bold transition-all"
+                    >
+                      <UtensilsCrossed className="w-3.5 h-3.5" />
+                      コース変更
+                    </button>
+                  ) : (
+                    <div className="flex flex-col gap-2 border border-brown/15 rounded-xl p-3">
+                      <p className="text-[10px] font-bold uppercase opacity-50 tracking-wider">コース設定</p>
+                      <select
+                        value={courseEditValue}
+                        onChange={e => setCourseEditValue(e.target.value as '' | 'casual' | 'premium')}
+                        className="w-full text-sm border border-brown/20 rounded-lg px-2 py-1.5 bg-white"
+                      >
+                        <option value="">コースなし</option>
+                        <option value="casual">Casual Japanese Course — ¥8,000</option>
+                        <option value="premium">Premium Hokkaido Course — ¥12,000</option>
+                      </select>
+                      {courseEditValue && (
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] opacity-60 font-bold">コース人数:</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={selectedRes.party_size}
+                            value={courseEditCount}
+                            onChange={e => setCourseEditCount(parseInt(e.target.value) || 1)}
+                            className="w-16 text-sm border border-brown/20 rounded-lg px-2 py-1 bg-white"
+                          />
+                          <span className="text-[10px] opacity-40">/ {selectedRes.party_size}名</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={async () => {
+                          await supabase.from('reservations').update({
+                            course_menu: courseEditValue || null,
+                            course_guest_count: courseEditValue ? courseEditCount : null,
+                          }).eq('id', selectedRes.id);
+                          setCourseEditMode(false);
+                          setSelectedRes(null);
+                          await refreshReservations();
+                        }}
+                        className="py-1.5 px-3 bg-brown text-cream rounded-lg text-xs font-bold hover:bg-brown/80 transition-colors"
+                      >
+                        保存
+                      </button>
+                      <button
+                        onClick={() => setCourseEditMode(false)}
+                        className="text-[10px] opacity-40 hover:opacity-70 transition-opacity text-center"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => setIsCancelConfirm(true)}
                     className="w-full py-3 rounded-2xl text-sm font-bold text-red-500 border border-red-100 hover:bg-red-50 transition-all"
@@ -974,7 +1089,7 @@ export default function StaffDashboard() {
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -1019,9 +1134,20 @@ export default function StaffDashboard() {
                 {/* Charge amount */}
                 <div className="bg-cream/30 p-4 rounded-2xl">
                   <p className="text-[10px] uppercase font-bold opacity-40 mb-1">請求金額</p>
-                  <p className="text-xl font-bold">
-                    {chargeRes.party_size}名 × ¥3,000 = ¥{(chargeRes.party_size * 3000).toLocaleString()}
-                  </p>
+                  {chargeRes.course_menu && chargeRes.course_guest_count && (
+                    <p className="text-[10px] text-orange-600 font-bold mb-2">
+                      {chargeRes.course_guest_count}名 × ¥{(chargeRes.course_menu === 'premium' ? 12000 : 8000).toLocaleString()} — コース100%キャンセル料
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold opacity-50">¥</span>
+                    <input
+                      type="number"
+                      value={chargeAmountYen}
+                      onChange={e => setChargeAmountYen(Math.max(0, Number(e.target.value)))}
+                      className="flex-1 text-xl font-bold bg-white border border-cream/40 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brown/30"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1046,7 +1172,7 @@ export default function StaffDashboard() {
                     disabled={!chargeRes.square_card_id || isCharging}
                     className="w-full py-4 rounded-2xl font-bold text-lg bg-red-600 text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {isCharging ? '処理中...' : `¥${(chargeRes.party_size * 3000).toLocaleString()} を請求する`}
+                    {isCharging ? '処理中...' : `¥${chargeAmountYen.toLocaleString()} を請求する`}
                   </button>
                   <button
                     onClick={() => { setChargeRes(null); setChargeError(null); }}
@@ -1108,10 +1234,11 @@ export default function StaffDashboard() {
                       <button
                         key={idx}
                         onClick={() => toggleDateHoliday(day)}
+                        disabled={!isSameMonth(day, calendarMonth)}
                         className={cn(
                           "aspect-square rounded-full flex flex-col items-center justify-center text-sm transition-all relative font-bold group",
-                          !isSameMonth(day, calendarMonth) && "opacity-10",
-                          isHoliday ? "bg-red-500 text-white" : "hover:bg-brown/5",
+                          !isSameMonth(day, calendarMonth) && "opacity-10 pointer-events-none",
+                          isSameMonth(day, calendarMonth) && isHoliday ? "bg-red-500 text-white" : "hover:bg-brown/5",
                           isSameDay(day, new Date()) && !isHoliday && "text-orange-500 after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:bg-orange-500 after:rounded-full"
                         )}
                       >
@@ -1146,7 +1273,7 @@ export default function StaffDashboard() {
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
             >
               <h3 className="text-2xl font-bold mb-2">新規予約</h3>
               {isAddingRes.tableName === null ? (
@@ -1199,6 +1326,18 @@ export default function StaffDashboard() {
                     <label className="block text-[10px] font-bold uppercase opacity-40 mb-1">時間</label>
                     <input key={`time-${modalCycle}`} name="time" defaultValue={modalCycle === 1 ? '18:00' : '20:30'} className="w-full bg-cream/30 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-brown/20" />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase opacity-40 mb-1">コース</label>
+                  <select name="course" className="w-full bg-cream/30 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-brown/20">
+                    <option value="">コースなし</option>
+                    <option value="casual">Casual Japanese — ¥8,000</option>
+                    <option value="premium">Premium Hokkaido — ¥12,000</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase opacity-40 mb-1">コース人数（空欄で全員）</label>
+                  <input name="course_count" type="number" min="1" placeholder="全員" className="w-full bg-cream/30 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-brown/20" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase opacity-40 mb-1">メモ</label>
@@ -1354,9 +1493,21 @@ export default function StaffDashboard() {
                     return (
                       <div key={cycleNum} className="flex flex-col min-h-0 border-r last:border-r-0 border-brown/5 pr-3 last:pr-0">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-bold bg-brown text-cream px-3 py-1 rounded inline-block self-start">
-                            {cycleNum === 1 ? '1部 (18:00 - 20:30)' : '2部 (21:00 - 閉店)'}
-                          </h3>
+                          <div>
+                            <h3 className="text-sm font-bold bg-brown text-cream px-3 py-1 rounded inline-block self-start">
+                              {cycleNum === 1 ? '1部 (18:00 - 20:30)' : '2部 (21:00 - 閉店)'}
+                            </h3>
+                            {courseCounts[cycleNum] > 0 && (
+                              <p className={cn(
+                                "text-[9px] font-bold mt-1 px-1",
+                                courseCounts[cycleNum] >= 10 ? "text-red-600" :
+                                courseCounts[cycleNum] >= 8 ? "text-amber-600" : "text-brown/50"
+                              )}>
+                                <UtensilsCrossed className="w-2.5 h-2.5 inline mr-0.5" />
+                                コース {courseCounts[cycleNum]}/10名
+                              </p>
+                            )}
+                          </div>
                           <div className="flex gap-1 overflow-x-auto max-w-[200px] scrollbar-none pb-1">
                             {PHYSICAL_TABLES.filter(tName =>
                               !tableAssignments.some(a => {
@@ -1400,11 +1551,23 @@ export default function StaffDashboard() {
                                       </span>
                                     </div>
                                   </div>
-                                  {res.notes && (
-                                    <div className="px-2 py-0.5 bg-red-50 text-red-700 text-[9px] font-bold rounded-full border border-red-100 max-w-[80px] truncate shrink-0">
-                                      {res.notes}
-                                    </div>
-                                  )}
+                                  <div className="flex flex-col items-end gap-1 shrink-0">
+                                    {res.notes && (
+                                      <div className="px-2 py-0.5 bg-red-50 text-red-700 text-[9px] font-bold rounded-full border border-red-100 max-w-[80px] truncate">
+                                        {res.notes}
+                                      </div>
+                                    )}
+                                    {res.course_menu && (
+                                      <div className={cn(
+                                        "px-2 py-0.5 text-[9px] font-bold rounded-full border",
+                                        COURSE_COLORS[res.course_menu].bg,
+                                        COURSE_COLORS[res.course_menu].text,
+                                        COURSE_COLORS[res.course_menu].border,
+                                      )}>
+                                        {COURSE_LABELS[res.course_menu]}
+                                      </div>
+                                    )}
+                                  </div>
                                 </button>
                               );
                             })
@@ -1451,7 +1614,15 @@ export default function StaffDashboard() {
                         return (
                           <button
                             key={res.id}
-                            onClick={() => { setChargeRes(res); setChargeError(null); }}
+                            onClick={() => {
+                              const alreadyCharged = chargedIdsRef.current.has(res.id);
+                              setChargeRes(alreadyCharged ? { ...res, charged_at: new Date().toISOString() } : res);
+                              setChargeError(null);
+                              const amt = res.course_menu && res.course_guest_count
+                                ? res.course_guest_count * (res.course_menu === 'premium' ? 12000 : 8000)
+                                : res.party_size * 3000;
+                              setChargeAmountYen(amt);
+                            }}
                             className="shrink-0 w-52 bg-red-50 border border-red-100 rounded-xl p-3 flex flex-col gap-1.5 text-left hover:border-red-300 hover:shadow-sm transition-all active:scale-95"
                           >
                             <div className="flex items-start justify-between gap-2">
@@ -1607,7 +1778,8 @@ function TableBlock({
             className={cn(
               "group flex-1 flex flex-col items-center justify-center relative min-h-0 transition-all text-brown py-0.5",
               !isLast && "border-r-2 border-black/30",
-              entry?.res.status === 'seated' ? "bg-black/10" : "hover:bg-white/10"
+              entry?.res.status === 'seated' ? "bg-black/10" :
+              entry?.res.course_menu ? "bg-orange-400/30 hover:bg-orange-400/40" : "hover:bg-white/10"
             )}
           >
             <div className="text-[8px] font-bold opacity-40 leading-none mb-0.5">{part}</div>
@@ -1619,6 +1791,7 @@ function TableBlock({
                 </div>
                 <div className="flex items-center justify-center gap-0.5 text-[9px] opacity-90 font-bold">
                   <Users className="w-2.5 h-2.5" /> {entry.res.party_size}
+                  {entry.res.course_menu && <UtensilsCrossed className="w-2.5 h-2.5 text-orange-600" />}
                   {entry.res.status === 'seated' && <span className="w-1.5 h-1.5 rounded-full bg-green-600 ml-0.5" />}
                   {entry.asg.requires_staff_review && <AlertCircle className="w-2.5 h-2.5 text-orange-500" />}
                 </div>
@@ -1647,7 +1820,8 @@ function TableBlock({
         className={cn(
           "group flex-1 flex flex-col items-center justify-center relative min-h-0 transition-all text-brown py-0.5",
           !isLast && "border-r-2 border-black/30",
-          entry?.res.status === 'seated' ? "bg-black/10" : "hover:bg-white/10"
+          entry?.res.status === 'seated' ? "bg-black/10" :
+          entry?.res.course_menu ? "bg-orange-400/30 hover:bg-orange-400/40" : "hover:bg-white/10"
         )}
       >
         <div className="text-[8px] font-bold opacity-40 leading-none mb-0.5">{half}</div>
@@ -1659,6 +1833,7 @@ function TableBlock({
             </div>
             <div className="flex items-center justify-center gap-0.5 text-[9px] opacity-90 font-bold">
               <Users className="w-2.5 h-2.5" /> {entry.res.party_size}
+              {entry.res.course_menu && <UtensilsCrossed className="w-2.5 h-2.5 text-orange-600" />}
               {entry.res.status === 'seated' && <span className="w-1.5 h-1.5 rounded-full bg-green-600 ml-0.5" />}
               {entry.asg.requires_staff_review && <AlertCircle className="w-2.5 h-2.5 text-orange-500" />}
             </div>
@@ -1708,7 +1883,8 @@ function TableBlock({
             onClick={() => first ? onResClick(first.res) : onEmptyClick(1)}
             className={cn(
               "group flex-1 border-b-2 border-black/30 flex items-center justify-center relative min-h-0 w-full transition-all text-brown",
-              first?.res.status === 'seated' ? "bg-black/10" : "hover:bg-white/10"
+              first?.res.status === 'seated' ? "bg-black/10" :
+              first?.res.course_menu ? "bg-orange-400/30 hover:bg-orange-400/40" : "hover:bg-white/10"
             )}
           >
             {first ? (
@@ -1719,6 +1895,7 @@ function TableBlock({
                 </div>
                 <div className="flex items-center justify-center gap-1 text-[10px] opacity-90 font-bold">
                   <Users className="w-3 h-3" /> {first.res.party_size}
+                  {first.res.course_menu && <UtensilsCrossed className="w-3 h-3 text-orange-600" />}
                   {first.res.status === 'seated' && <span className="w-2 h-2 rounded-full bg-green-600 ml-1" />}
                   {first.asg.requires_staff_review && <AlertCircle className="w-3 h-3 text-orange-500" />}
                 </div>
@@ -1745,7 +1922,8 @@ function TableBlock({
             onClick={() => second ? onResClick(second.res) : onEmptyClick(2)}
             className={cn(
               "group flex-1 flex items-center justify-center relative min-h-0 w-full transition-all text-brown",
-              second?.res.status === 'seated' ? "bg-black/10" : "hover:bg-white/10"
+              second?.res.status === 'seated' ? "bg-black/10" :
+              second?.res.course_menu ? "bg-orange-400/30 hover:bg-orange-400/40" : "hover:bg-white/10"
             )}
           >
             {second ? (
@@ -1756,6 +1934,7 @@ function TableBlock({
                 </div>
                 <div className="flex items-center justify-center gap-1 text-[10px] opacity-90 font-bold">
                   <Users className="w-3 h-3" /> {second.res.party_size}
+                  {second.res.course_menu && <UtensilsCrossed className="w-3 h-3 text-orange-600" />}
                   {second.asg.requires_staff_review && <AlertCircle className="w-3 h-3 text-red-700" />}
                   {second.res.status === 'seated' && <span className="w-2 h-2 rounded-full bg-green-600 ml-1" />}
                 </div>

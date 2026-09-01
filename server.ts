@@ -59,16 +59,16 @@ async function startServer() {
   // Charge a stored card — called from the Staff Dashboard for late cancellation fees
   app.post("/api/square/charge", async (req, res) => {
     try {
-      const { square_customer_id, square_card_id, party_size } = req.body as {
+      const { square_customer_id, square_card_id, amount_yen } = req.body as {
         square_customer_id: string;
         square_card_id: string;
-        party_size: number;
+        amount_yen: number;
       };
-      if (!square_customer_id || !square_card_id || !party_size) {
-        return res.status(400).json({ error: "square_customer_id, square_card_id, and party_size are required" });
+      if (!square_customer_id || !square_card_id || !amount_yen) {
+        return res.status(400).json({ error: "square_customer_id, square_card_id, and amount_yen are required" });
       }
 
-      const amountYen = party_size * 3000;
+      const amountYen = amount_yen;
       const locationId = process.env.VITE_SQUARE_LOCATION_ID;
       if (!locationId) throw new Error("VITE_SQUARE_LOCATION_ID is not set");
 
