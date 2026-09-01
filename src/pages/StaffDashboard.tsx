@@ -22,6 +22,7 @@ import {
   Phone, Mail, GripHorizontal, Clock, UtensilsCrossed,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { supabase } from '../lib/supabase';
 import type { Reservation, TableAssignment, TableGraph } from '../lib/types';
 import { buildTableGraph, physicalTables, assignmentMode } from '../lib/tableGraph';
@@ -127,14 +128,16 @@ const CYCLE_TIMES: Array<{ time: string; cycle: 1 | 2 }> = [
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [tableAssignments, setTableAssignments] = useState<TableAssignment[]>([]);
   const [tableGraph, setTableGraph] = useState<TableGraph | null>(null);
   const [partyOfOneEnabled, setPartyOfOneEnabled] = useState(false);
   const [closedDates, setClosedDates] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'whiteboard' | 'book'>('whiteboard');
+  const [viewMode, setViewMode] = useState<'whiteboard' | 'book'>(isMobile ? 'book' : 'whiteboard');
   const [cancelledForDate, setCancelledForDate] = useState<Reservation[]>([]);
+  const [mobileCancelledOpen, setMobileCancelledOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
@@ -156,6 +159,10 @@ export default function StaffDashboard() {
   const [courseEditMode, setCourseEditMode] = useState(false);
   const [courseEditValue, setCourseEditValue] = useState<'' | 'casual' | 'premium'>('');
   const [courseEditCount, setCourseEditCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (isMobile) setViewMode('book');
+  }, [isMobile]);
 
   useEffect(() => {
     if (isAddingRes) setModalCycle(isAddingRes.cycle);
@@ -268,6 +275,16 @@ export default function StaffDashboard() {
       setReservations([]);
       setTableAssignments([]);
     }
+  };
+
+  const openChargeModal = (res: Reservation) => {
+    const alreadyCharged = chargedIdsRef.current.has(res.id);
+    setChargeRes(alreadyCharged ? { ...res, charged_at: new Date().toISOString() } : res);
+    setChargeError(null);
+    const amt = res.course_menu && res.course_guest_count
+      ? res.course_guest_count * (res.course_menu === 'premium' ? 12000 : 8000)
+      : res.party_size * 3000;
+    setChargeAmountYen(amt);
   };
 
   const togglePartyOfOne = async () => {
@@ -577,7 +594,7 @@ export default function StaffDashboard() {
       className="h-screen bg-[#f8f5f2] text-brown font-sans relative overflow-hidden flex flex-col"
     >
       {/* HEADER */}
-      <header className="bg-white border-b border-brown/10 px-6 py-3 flex items-center justify-between z-20 shadow-sm shrink-0">
+      <header className="bg-white border-b border-brown/10 px-3 py-2 flex flex-wrap items-center justify-between gap-2 z-20 shadow-sm shrink-0 md:px-6 md:py-3 md:flex-nowrap">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold tracking-tighter uppercase">Karabina スタッフ用</h1>
           <div className="h-6 w-px bg-brown/10 mx-2 hidden sm:block" />
@@ -614,32 +631,36 @@ export default function StaffDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={togglePartyOfOne}
-            className={cn(
-              "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 border active:scale-95",
-              partyOfOneEnabled
-                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                : "bg-white text-brown/50 border-brown/10 hover:bg-brown/5"
-            )}
-          >
-            1名予約
-            <span className={cn(
-              "text-[10px] font-bold px-1.5 py-0.5 rounded",
-              partyOfOneEnabled ? "bg-green-600 text-white" : "bg-brown/10 text-brown/40"
-            )}>
-              {partyOfOneEnabled ? 'ON' : 'OFF'}
-            </span>
-          </button>
-          <div className="h-6 w-px bg-brown/10" />
-          <button
-            onClick={() => { setIsHolidayModalOpen(true); setCalendarMonth(selectedDate); }}
-            className="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 bg-white text-brown border border-brown/10 hover:bg-brown/5 hover:border-brown/30 hover:shadow-sm active:scale-95"
-          >
-            <Store className="w-4 h-4" />
-            定休日設定
-          </button>
-          <div className="h-6 w-px bg-brown/10 mx-1" />
+          {!isMobile && (
+            <>
+              <button
+                onClick={togglePartyOfOne}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 border active:scale-95",
+                  partyOfOneEnabled
+                    ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    : "bg-white text-brown/50 border-brown/10 hover:bg-brown/5"
+                )}
+              >
+                1名予約
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded",
+                  partyOfOneEnabled ? "bg-green-600 text-white" : "bg-brown/10 text-brown/40"
+                )}>
+                  {partyOfOneEnabled ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              <div className="h-6 w-px bg-brown/10" />
+              <button
+                onClick={() => { setIsHolidayModalOpen(true); setCalendarMonth(selectedDate); }}
+                className="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 bg-white text-brown border border-brown/10 hover:bg-brown/5 hover:border-brown/30 hover:shadow-sm active:scale-95"
+              >
+                <Store className="w-4 h-4" />
+                定休日設定
+              </button>
+              <div className="h-6 w-px bg-brown/10 mx-1" />
+            </>
+          )}
           <button
             onClick={() => setIsAddingRes({ tableName: null, cycle: 1 })}
             className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 bg-brown text-cream hover:shadow-md flex items-center gap-1.5"
@@ -647,26 +668,30 @@ export default function StaffDashboard() {
             <Plus className="w-4 h-4" />
             予約追加
           </button>
-          <div className="h-6 w-px bg-brown/10 mx-1" />
-          <button
-            onClick={() => setViewMode('whiteboard')}
-            className={cn(
-              "px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95",
-              viewMode === 'whiteboard' ? "bg-brown text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
-            )}
-          >
-            ホワイトボード
-          </button>
-          <button
-            onClick={() => setViewMode('book')}
-            className={cn(
-              "px-4 py-2 rounded-lg text-sm font-bold transition-all inline-flex items-center gap-2 active:scale-95",
-              viewMode === 'book' ? "bg-brown text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
-            )}
-          >
-            <BookOpen className="w-4 h-4" />
-            予約帳
-          </button>
+          {!isMobile && (
+            <>
+              <div className="h-6 w-px bg-brown/10 mx-1" />
+              <button
+                onClick={() => setViewMode('whiteboard')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95",
+                  viewMode === 'whiteboard' ? "bg-brown text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
+                )}
+              >
+                ホワイトボード
+              </button>
+              <button
+                onClick={() => setViewMode('book')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-bold transition-all inline-flex items-center gap-2 active:scale-95",
+                  viewMode === 'book' ? "bg-brown text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
+                )}
+              >
+                <BookOpen className="w-4 h-4" />
+                予約帳
+              </button>
+            </>
+          )}
           <div className="h-6 w-px bg-brown/10 mx-1" />
           <button
             onClick={async () => { await supabase.auth.signOut(); navigate('/staff/login', { replace: true }); }}
@@ -743,17 +768,17 @@ export default function StaffDashboard() {
       {/* RESERVATION DETAIL MODAL */}
       <AnimatePresence>
         {selectedRes && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-4">
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => { setSelectedRes(null); setIsCancelConfirm(false); }}
               className="absolute inset-0 bg-brown/40 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
+              initial={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              className="relative w-full max-w-sm bg-white rounded-t-[2rem] shadow-2xl overflow-y-auto max-h-[92vh] p-6 pb-8 md:rounded-[2.5rem] md:max-h-[90vh] md:p-8"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -1079,17 +1104,17 @@ export default function StaffDashboard() {
       {/* CHARGE MODAL */}
       <AnimatePresence>
         {chargeRes && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-4">
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => { setChargeRes(null); setChargeError(null); }}
               className="absolute inset-0 bg-brown/40 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
+              initial={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              className="relative w-full max-w-sm bg-white rounded-t-[2rem] shadow-2xl overflow-y-auto max-h-[92vh] p-6 pb-8 md:rounded-[2.5rem] md:max-h-[90vh] md:p-8"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -1263,17 +1288,17 @@ export default function StaffDashboard() {
       {/* ADD RESERVATION MODAL */}
       <AnimatePresence>
         {isAddingRes && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-4">
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsAddingRes(null)}
               className="absolute inset-0 bg-brown/40 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 40 }}
-              className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh] p-8"
+              initial={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={isMobile ? { opacity: 0, y: '100%' } : { opacity: 0, scale: 0.9, y: 40 }}
+              className="relative w-full max-w-sm bg-white rounded-t-[2rem] shadow-2xl overflow-y-auto max-h-[92vh] p-6 pb-8 md:rounded-[2.5rem] md:max-h-[90vh] md:p-8"
             >
               <h3 className="text-2xl font-bold mb-2">新規予約</h3>
               {isAddingRes.tableName === null ? (
@@ -1474,25 +1499,27 @@ export default function StaffDashboard() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="absolute inset-0 p-6 lg:p-8 flex flex-col"
+                className="absolute inset-0 p-4 flex flex-col overflow-y-auto md:p-6 md:overflow-hidden lg:p-8"
               >
                 <div className="flex justify-between items-end mb-4 border-b-2 border-brown/10 pb-2 shrink-0">
                   <div>
                     <h2 className="text-2xl font-bold uppercase tracking-tight">予約帳</h2>
                     <p className="text-xs opacity-60 font-mono italic font-bold">予約詳細とステータス一覧</p>
                   </div>
-                  <button onClick={() => setViewMode('whiteboard')} className="text-sm font-bold uppercase underline hover:opacity-70">
-                    ホワイトボードに戻る
-                  </button>
+                  {!isMobile && (
+                    <button onClick={() => setViewMode('whiteboard')} className="text-sm font-bold uppercase underline hover:opacity-70">
+                      ホワイトボードに戻る
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 grid grid-cols-2 gap-6 min-h-0 overflow-hidden">
+                <div className="flex flex-col md:flex-1 md:min-h-0">
+                <div className="grid grid-cols-1 gap-6 overflow-visible md:flex-1 md:min-h-0 md:grid-cols-2 md:overflow-hidden">
                   {([1, 2] as const).map(cycleNum => {
                     const cycleReservations = reservations.filter(r => r.cycle === cycleNum);
                     return (
-                      <div key={cycleNum} className="flex flex-col min-h-0 border-r last:border-r-0 border-brown/5 pr-3 last:pr-0">
-                        <div className="flex items-center justify-between mb-3">
+                      <div key={cycleNum} className="flex flex-col border-r-0 pr-0 md:min-h-0 md:border-r md:last:border-r-0 border-brown/5 md:pr-3 md:last:pr-0">
+                        <div className="flex items-center justify-between mb-3 sticky top-0 bg-[#f8f5f2]/95 backdrop-blur-sm z-10 py-2 md:static md:bg-transparent md:py-0">
                           <div>
                             <h3 className="text-sm font-bold bg-brown text-cream px-3 py-1 rounded inline-block self-start">
                               {cycleNum === 1 ? '1部 (18:00 - 20:30)' : '2部 (21:00 - 閉店)'}
@@ -1508,7 +1535,7 @@ export default function StaffDashboard() {
                               </p>
                             )}
                           </div>
-                          <div className="flex gap-1 overflow-x-auto max-w-[200px] scrollbar-none pb-1">
+                          <div className="flex gap-2 flex-wrap pb-1 md:flex-nowrap md:gap-1 md:overflow-x-auto md:max-w-[200px] md:scrollbar-none">
                             {PHYSICAL_TABLES.filter(tName =>
                               !tableAssignments.some(a => {
                                 if (!a.reservation_id) return false;
@@ -1519,14 +1546,14 @@ export default function StaffDashboard() {
                               <button
                                 key={tName}
                                 onClick={() => setIsAddingRes({ tableName: tName, cycle: cycleNum })}
-                                className="text-[8px] bg-brown/5 hover:bg-brown/10 w-6 h-6 rounded flex items-center justify-center font-bold"
+                                className="text-xs bg-brown/5 hover:bg-brown/10 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center font-bold md:text-[8px] md:w-6 md:h-6 md:min-w-0 md:min-h-0 md:rounded"
                               >
                                 T{tName}
                               </button>
                             ))}
                           </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto pr-2 space-y-2 scrollbar-none">
+                        <div className="space-y-3 pr-0 md:flex-1 md:overflow-y-auto md:pr-2 md:space-y-2 md:scrollbar-none">
                           {cycleReservations.length > 0 ? (
                             cycleReservations.map(res => {
                               const asg = tableAssignments.find(a => a.reservation_id === res.id);
@@ -1534,17 +1561,17 @@ export default function StaffDashboard() {
                                 <button
                                   key={res.id}
                                   onClick={() => setSelectedRes(res)}
-                                  className="w-full flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm border border-brown/5 hover:border-brown/20 transition-all shrink-0 text-left"
+                                  className="w-full flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-brown/5 hover:border-brown/20 transition-all shrink-0 text-left min-h-[64px] md:p-3 md:rounded-lg md:min-h-0"
                                 >
-                                  <div className="w-10 h-10 bg-cream rounded flex items-center justify-center font-bold text-base shrink-0 flex-col leading-tight">
+                                  <div className="w-14 h-14 bg-cream rounded flex items-center justify-center font-bold text-lg shrink-0 flex-col leading-tight md:w-10 md:h-10 md:text-base">
                                     <span className="text-[10px] opacity-40">T{asg?.table_name ?? '?'}</span>
                                     <span className="text-xs">{res.arrival_time}</span>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className={cn("font-bold text-sm truncate", res.status === 'seated' && "line-through opacity-40")}>
+                                    <div className={cn("font-bold text-base truncate md:text-sm", res.status === 'seated' && "line-through opacity-40")}>
                                       {res.name}
                                     </div>
-                                    <div className="flex items-center gap-3 text-[10px] opacity-60 font-bold">
+                                    <div className="flex items-center gap-3 text-xs opacity-60 font-bold md:text-[10px]">
                                       <span className="flex items-center gap-1 shrink-0"><Users className="w-3 h-3" /> {res.party_size}名</span>
                                       <span className="truncate">
                                         {res.status === 'seated' ? '着席済' : res.status === 'confirmed' ? '確認済' : '確認待ち'}
@@ -1553,13 +1580,13 @@ export default function StaffDashboard() {
                                   </div>
                                   <div className="flex flex-col items-end gap-1 shrink-0">
                                     {res.notes && (
-                                      <div className="px-2 py-0.5 bg-red-50 text-red-700 text-[9px] font-bold rounded-full border border-red-100 max-w-[80px] truncate">
+                                      <div className="px-2 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full border border-red-100 max-w-[110px] truncate md:text-[9px] md:max-w-[80px]">
                                         {res.notes}
                                       </div>
                                     )}
                                     {res.course_menu && (
                                       <div className={cn(
-                                        "px-2 py-0.5 text-[9px] font-bold rounded-full border",
+                                        "px-2 py-0.5 text-[10px] font-bold rounded-full border md:text-[9px]",
                                         COURSE_COLORS[res.course_menu].bg,
                                         COURSE_COLORS[res.course_menu].text,
                                         COURSE_COLORS[res.course_menu].border,
@@ -1572,7 +1599,7 @@ export default function StaffDashboard() {
                               );
                             })
                           ) : (
-                            <div className="text-xs italic opacity-40 py-2">予約なし</div>
+                            <div className="text-sm italic opacity-40 py-3 md:text-xs md:py-2">予約なし</div>
                           )}
                         </div>
                       </div>
@@ -1580,82 +1607,15 @@ export default function StaffDashboard() {
                   })}
                 </div>
 
-                {/* Drag-to-resize handle — always visible */}
-                <div
-                  className="shrink-0 h-5 flex items-center gap-2 px-1 cursor-row-resize group border-t border-brown/10 hover:border-brown/30 select-none mt-3"
-                  onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
-                  onPointerMove={(e) => {
-                    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-                    setCancelledHeight(h => Math.max(0, Math.min(320, h - e.movementY)));
-                  }}
-                >
-                  <GripHorizontal className="w-3 h-3 opacity-20 group-hover:opacity-50 shrink-0" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-40 group-hover:opacity-60">
-                    キャンセル（本日）
-                  </span>
-                  {cancelledForDate.length > 0 && (
-                    <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded-full">
-                      {cancelledForDate.length}
-                    </span>
-                  )}
-                </div>
-
-                {/* Cancelled content — height controlled by drag */}
-                <div className="shrink-0 overflow-hidden" style={{ height: cancelledHeight }}>
-                  {cancelledForDate.length === 0 ? (
-                    <p className="text-xs italic opacity-40 pt-2 pb-3">本日のキャンセルはありません</p>
-                  ) : (
-                    <div className="flex gap-3 overflow-x-auto scrollbar-none pt-1 pb-3">
-                      {cancelledForDate.map(res => {
-                        const late = isLateCancel(res);
-                        const cancelTime = res.cancelled_at
-                          ? format(new Date(res.cancelled_at), 'M/d HH:mm')
-                          : null;
-                        return (
-                          <button
-                            key={res.id}
-                            onClick={() => {
-                              const alreadyCharged = chargedIdsRef.current.has(res.id);
-                              setChargeRes(alreadyCharged ? { ...res, charged_at: new Date().toISOString() } : res);
-                              setChargeError(null);
-                              const amt = res.course_menu && res.course_guest_count
-                                ? res.course_guest_count * (res.course_menu === 'premium' ? 12000 : 8000)
-                                : res.party_size * 3000;
-                              setChargeAmountYen(amt);
-                            }}
-                            className="shrink-0 w-52 bg-red-50 border border-red-100 rounded-xl p-3 flex flex-col gap-1.5 text-left hover:border-red-300 hover:shadow-sm transition-all active:scale-95"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="font-bold text-sm truncate">{res.name}</p>
-                              <span className="shrink-0 text-[10px] bg-white text-red-600 font-bold px-1.5 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
-                                <Users className="w-2.5 h-2.5" />{res.party_size}名
-                              </span>
-                            </div>
-                            <p className="text-[10px] font-mono opacity-60">{res.arrival_time} · {res.cycle === 1 ? '1部' : '2部'}</p>
-                            <p className="text-[10px] opacity-60">キャンセル日時: {cancelTime ?? '—'}</p>
-                            {res.cancelled_at && (
-                              <span className={cn(
-                                "text-[10px] font-bold px-2 py-0.5 rounded-full self-start",
-                                late ? "bg-red-200 text-red-700" : "bg-gray-100 text-gray-500"
-                              )}>
-                                {late ? '24時間以内' : '早期キャンセル'}
-                              </span>
-                            )}
-                            {res.charged_at ? (
-                              <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full self-start">
-                                ✓ 請求済み ¥{(res.charge_amount_yen ?? 0).toLocaleString()}
-                              </span>
-                            ) : res.square_card_id ? (
-                              <span className="text-[10px] font-bold text-blue-600 opacity-70 self-start">カードあり →</span>
-                            ) : (
-                              <span className="text-[10px] opacity-40 self-start">カードなし</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <CancelledTray
+                  cancelledForDate={cancelledForDate}
+                  isMobile={isMobile}
+                  cancelledHeight={cancelledHeight}
+                  setCancelledHeight={setCancelledHeight}
+                  mobileCancelledOpen={mobileCancelledOpen}
+                  setMobileCancelledOpen={setMobileCancelledOpen}
+                  onOpenCharge={openChargeModal}
+                />
                 </div>
               </motion.div>
             )}
@@ -1663,17 +1623,119 @@ export default function StaffDashboard() {
         </div>
       </main>
 
-      <footer className="bg-white border-t border-brown/5 px-8 py-2 flex items-center justify-between text-xs font-mono tracking-widest shrink-0">
-        <div className="flex gap-8 font-bold">
+      <footer className="bg-white border-t border-brown/5 px-4 py-2 flex flex-wrap items-center justify-between gap-1 text-xs font-mono tracking-widest shrink-0 md:px-8">
+        <div className="flex gap-4 md:gap-8 font-bold">
           <span>合計人数: {totalGuests}名</span>
           <span>1部: {cycle1Guests}名</span>
           <span>2部: {cycle2Guests}名</span>
         </div>
-        <div className="opacity-40">
+        <div className="opacity-40 hidden md:block">
           Karabina Operations Center v1.1
         </div>
       </footer>
     </motion.div>
+  );
+}
+
+function CancelledTray({
+  cancelledForDate,
+  isMobile,
+  cancelledHeight,
+  setCancelledHeight,
+  mobileCancelledOpen,
+  setMobileCancelledOpen,
+  onOpenCharge,
+}: {
+  cancelledForDate: Reservation[];
+  isMobile: boolean;
+  cancelledHeight: number;
+  setCancelledHeight: React.Dispatch<React.SetStateAction<number>>;
+  mobileCancelledOpen: boolean;
+  setMobileCancelledOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onOpenCharge: (res: Reservation) => void;
+}) {
+  const isOpen = isMobile ? mobileCancelledOpen : true;
+
+  return (
+    <>
+      {/* Header — drag-to-resize on iPad, tap-to-toggle on mobile */}
+      <div
+        className={cn(
+          "shrink-0 flex items-center gap-2 px-1 group border-t border-brown/10 hover:border-brown/30 select-none mt-3",
+          isMobile ? "cursor-pointer h-11" : "h-5 cursor-row-resize"
+        )}
+        onClick={isMobile ? () => setMobileCancelledOpen(o => !o) : undefined}
+        onPointerDown={isMobile ? undefined : (e) => e.currentTarget.setPointerCapture(e.pointerId)}
+        onPointerMove={isMobile ? undefined : (e) => {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+          setCancelledHeight(h => Math.max(0, Math.min(320, h - e.movementY)));
+        }}
+      >
+        <GripHorizontal className="w-3 h-3 opacity-20 group-hover:opacity-50 shrink-0" />
+        <span className="text-[10px] font-bold uppercase tracking-wider opacity-40 group-hover:opacity-60">
+          キャンセル（本日）
+        </span>
+        {cancelledForDate.length > 0 && (
+          <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded-full">
+            {cancelledForDate.length}
+          </span>
+        )}
+      </div>
+
+      {/* Cancelled content — drag-controlled height on iPad, tap-toggled max-h on mobile */}
+      <div
+        className="shrink-0 overflow-hidden"
+        style={isMobile ? undefined : { height: cancelledHeight }}
+      >
+        <div className={cn(!isMobile ? "" : isOpen ? "max-h-64 overflow-y-auto" : "max-h-0 overflow-hidden")}>
+          {cancelledForDate.length === 0 ? (
+            <p className="text-xs italic opacity-40 pt-2 pb-3">本日のキャンセルはありません</p>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto scrollbar-none pt-1 pb-3">
+              {cancelledForDate.map(res => {
+                const late = isLateCancel(res);
+                const cancelTime = res.cancelled_at
+                  ? format(new Date(res.cancelled_at), 'M/d HH:mm')
+                  : null;
+                return (
+                  <button
+                    key={res.id}
+                    onClick={() => onOpenCharge(res)}
+                    className="shrink-0 w-64 bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col gap-1.5 text-left hover:border-red-300 hover:shadow-sm transition-all active:scale-95 md:w-52 md:p-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-bold text-sm truncate">{res.name}</p>
+                      <span className="shrink-0 text-[10px] bg-white text-red-600 font-bold px-1.5 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
+                        <Users className="w-2.5 h-2.5" />{res.party_size}名
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-mono opacity-60">{res.arrival_time} · {res.cycle === 1 ? '1部' : '2部'}</p>
+                    <p className="text-[10px] opacity-60">キャンセル日時: {cancelTime ?? '—'}</p>
+                    {res.cancelled_at && (
+                      <span className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-full self-start",
+                        late ? "bg-red-200 text-red-700" : "bg-gray-100 text-gray-500"
+                      )}>
+                        {late ? '24時間以内' : '早期キャンセル'}
+                      </span>
+                    )}
+                    {res.charged_at ? (
+                      <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full self-start">
+                        ✓ 請求済み ¥{(res.charge_amount_yen ?? 0).toLocaleString()}
+                      </span>
+                    ) : res.square_card_id ? (
+                      <span className="text-[10px] font-bold text-blue-600 opacity-70 self-start">カードあり →</span>
+                    ) : (
+                      <span className="text-[10px] opacity-40 self-start">カードなし</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 

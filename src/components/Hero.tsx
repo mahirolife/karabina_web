@@ -247,7 +247,7 @@ export function Hero() {
         </motion.div>
 
         {/* Wavy Text Overlay */}
-        <div className="absolute inset-x-0 inset-y-[-20%] flex items-center justify-center pointer-events-none overflow-hidden scale-[1.35] md:scale-[1.20] lg:scale-[1.30]">
+        <div className="absolute inset-x-0 inset-y-[-20%] flex items-center justify-center pointer-events-none overflow-hidden scale-[2.1] md:scale-[1.20] lg:scale-[1.30]">
           <svg viewBox="0 0 800 200" className="w-full h-full">
             <defs>
               <filter id="fireGlow" x="-20%" y="-20%" width="140%" height="140%">
