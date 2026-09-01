@@ -35,11 +35,9 @@ export const MENU_DATA: MenuCategory[] = [
       { name: { en: "Whole Hosehair Crab", jp: "毛ガニ (1杯)" }, desc: { en: "Whole Hokkaido hairy crab.", jp: "身の詰まった贅沢な毛ガニ。" }, price: "9800" },
       { name: { en: "Half Hairy Crab", jp: "毛ガニ (半身)" }, desc: { en: "Half Hokkaido hairy crab.", jp: "半分サイズの毛ガニ。" }, price: "5000" },
       { name: { en: "King Crab Leg", jp: "焼きタラバ" }, desc: { en: "Succulent grilled King Crab leg.", jp: "豪快に焼き上げたタラバガニ。" }, price: "7800" },
-      { name: { en: "Half King Crab Leg", jp: "焼きタラバ半分" }, desc: { en: "Half portion of King Crab.", jp: "タラバガニのハーフサイズ。" }, price: "4000" },
       { name: { en: "Fresh/Grilled Oyster", jp: "生/焼 牡蠣" }, desc: { en: "Pure Hokkaido flavor.", jp: "北海道産の牡蠣を生または焼きで。" }, price: "850" },
       { name: { en: "Hokke", jp: "ホッケ" }, desc: { en: "Fatty and flavorful Atka mackerel.", jp: "脂ののった北海道名物。" }, price: "2200" },
       { name: { en: "Dried Squid", jp: "イカ一夜干し" }, desc: { en: "Overnight-dried squid grilled to perfection.", jp: "旨味が濃縮された香ばしい焼き物。" }, price: "1400" },
-      { name: { en: "Komai Fish", jp: "こまい" }, desc: { en: "Dried saffron cod with mayonnaise.", jp: "マヨネーズと七味唐辛子で。" }, price: "850" },
     ]
   },
   {

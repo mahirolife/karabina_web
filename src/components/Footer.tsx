@@ -39,6 +39,12 @@ export function Footer() {
             <div className="uppercase tracking-widest text-[10px] md:text-sm space-y-2 md:space-y-4">
               <p className="font-bold">{t('footer.winter_only')}</p>
               <p>{t('footer.daily')}<br />6:00pm — 11:00pm</p>
+              <Link
+                to="/booking"
+                className="text-[9px] md:text-[10px] text-cream/60 normal-case italic hover:text-cream transition-colors"
+              >
+                {t('footer.check_calendar')}
+              </Link>
               <p className="text-[9px] md:text-[10px] text-cream/60 normal-case italic">{t('footer.last_order')}</p>
             </div>
           </div>
