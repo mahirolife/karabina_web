@@ -30,10 +30,9 @@ import { assignCycle } from '../lib/assignTables';
 
 // Returns true if `asgTable` (e.g. '6+7', '1A') belongs to whiteboard block `blockTable` (e.g. '6', '1')
 function assignmentMatchesBlock(asgTable: string, blockTable: string): boolean {
-  if (asgTable === blockTable) return true;
-  const blockParts = blockTable.split('+');
-  const asgParts = asgTable.split('+');
-  return asgParts.every(p => blockParts.some(bp => p === bp || p.startsWith(bp)));
+  const asgPhysicals = physicalTables(asgTable);
+  const blockPhysicals = physicalTables(blockTable);
+  return asgPhysicals.some(p => blockPhysicals.includes(p));
 }
 
 function isLateCancel(res: { date: string; arrival_time: string; cancelled_at?: string | null }): boolean {
@@ -601,7 +600,7 @@ export default function StaffDashboard() {
           <div className="flex items-center gap-2 bg-cream/50 p-1 rounded-full border border-brown/5">
             <button
               onClick={() => setSelectedDate(d => subDays(d, 1))}
-              className="p-1 hover:bg-brown/20 rounded-full transition-all active:scale-95"
+              className="p-1 flex items-center justify-center min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 hover:bg-brown/20 rounded-full transition-all active:scale-95"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -613,7 +612,7 @@ export default function StaffDashboard() {
                 exit={{ y: -5, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => { setIsCalendarOpen(true); setCalendarMonth(selectedDate); }}
-                className="text-sm font-mono font-bold px-4 py-1 hover:bg-brown/10 hover:shadow-inner rounded-full transition-all flex items-center gap-2 min-w-[180px] justify-center active:scale-[0.98]"
+                className="text-sm font-mono font-bold px-4 py-1 hover:bg-brown/10 hover:shadow-inner rounded-full transition-all flex items-center gap-2 min-w-[180px] min-h-[44px] md:min-h-0 justify-center active:scale-[0.98]"
               >
                 <CalendarIcon className="w-3.5 h-3.5 opacity-60" />
                 {format(selectedDate, 'yyyy年 MM月 dd日', { locale: ja })}
@@ -623,7 +622,7 @@ export default function StaffDashboard() {
             </AnimatePresence>
             <button
               onClick={() => setSelectedDate(d => addDays(d, 1))}
-              className="p-1 hover:bg-brown/20 rounded-full transition-all active:scale-95"
+              className="p-1 flex items-center justify-center min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 hover:bg-brown/20 rounded-full transition-all active:scale-95"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -663,7 +662,7 @@ export default function StaffDashboard() {
           )}
           <button
             onClick={() => setIsAddingRes({ tableName: null, cycle: 1 })}
-            className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 bg-brown text-cream hover:shadow-md flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 bg-brown text-cream hover:shadow-md flex items-center justify-center gap-1.5 min-h-[44px] md:min-h-0"
           >
             <Plus className="w-4 h-4" />
             予約追加
@@ -695,7 +694,7 @@ export default function StaffDashboard() {
           <div className="h-6 w-px bg-brown/10 mx-1" />
           <button
             onClick={async () => { await supabase.auth.signOut(); navigate('/staff/login', { replace: true }); }}
-            className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 bg-white text-brown/40 border border-brown/10 hover:text-brown hover:border-brown/30 hover:bg-brown/5"
+            className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 bg-white text-brown/40 border border-brown/10 hover:text-brown hover:border-brown/30 hover:bg-brown/5 flex items-center justify-center min-h-[44px] md:min-h-0"
           >
             ログアウト
           </button>
