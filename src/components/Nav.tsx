@@ -42,9 +42,9 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
       <header 
         className={cn(
           "fixed top-0 inset-x-0 z-40 transition-all duration-500 ease-in-out overflow-hidden flex items-center justify-center",
-          isScrolled 
-            ? "border-b border-brown/10 h-12 lg:h-16 text-brown shadow-sm" 
-            : "bg-transparent text-cream h-16 lg:h-24"
+          isScrolled
+            ? "border-b border-brown/10 h-14 lg:h-16 text-brown shadow-sm"
+            : "bg-transparent text-cream h-20 lg:h-24"
         )}
       >
         {/* Background Image for Scrolled State */}
@@ -59,13 +59,13 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
         )}
         
         <div className="container-custom flex items-center justify-between h-full relative z-10 w-full">
-          <button 
+          <button
             onClick={() => setIsOpen(true)}
-            className="flex items-center hover:opacity-60 transition-all hover:translate-x-1 active:scale-95 p-1"
+            className="flex items-center justify-center hover:opacity-60 transition-all hover:translate-x-1 active:scale-95 p-1 min-w-[48px] min-h-[48px] lg:min-w-0 lg:min-h-0"
             aria-label="Toggle Menu"
           >
             <MenuIcon className={cn(
-              "w-6 h-6 lg:w-8 lg:h-8",
+              "w-8 h-8",
               !isScrolled && "drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]"
             )} />
           </button>
@@ -74,7 +74,7 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
             to="/" 
             className={cn(
               "absolute left-1/2 -translate-x-1/2 flex items-center transition-all duration-500 hover:scale-105 active:scale-95 cursor-pointer",
-              isScrolled ? "h-6 lg:h-8" : "h-8 lg:h-12"
+              isScrolled ? "h-7 lg:h-8" : "h-10 lg:h-12"
             )}
           >
             <img 
@@ -93,12 +93,12 @@ export function Nav({ forceScrolled }: { forceScrolled?: boolean }) {
           </Link>
 
           <div className="flex items-center gap-4 lg:gap-8">
-            <Link 
+            <Link
               to="/booking"
               className={cn(
-                "uppercase text-[10px] lg:text-xs tracking-[0.2em] font-bold px-4 lg:px-6 py-2 rounded-full transition-all duration-300 active:scale-95 shadow-lg relative overflow-hidden group flex items-center justify-center",
-                isScrolled 
-                  ? "bg-brown text-cream hover:bg-brown/80 shadow-brown/10" 
+                "uppercase text-base lg:text-xs tracking-[0.15em] lg:tracking-[0.2em] font-bold px-6 lg:px-6 py-3 lg:py-2 min-h-[48px] lg:min-h-0 rounded-full transition-all duration-300 active:scale-95 shadow-lg relative overflow-hidden group flex items-center justify-center",
+                isScrolled
+                  ? "bg-brown text-cream hover:bg-brown/80 shadow-brown/10"
                   : "bg-orange text-cream hover:scale-105 shadow-orange/30 animate-pulse-subtle"
               )}
             >
