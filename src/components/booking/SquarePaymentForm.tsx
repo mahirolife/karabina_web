@@ -55,7 +55,10 @@ const SquarePaymentForm = forwardRef<SquarePaymentFormHandle, SquarePaymentFormP
               return;
             }
             const script = document.createElement('script');
-            script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
+            const appId = (import.meta as any).env.VITE_SQUARE_APPLICATION_ID ?? '';
+            script.src = appId.startsWith('sandbox-')
+              ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+              : 'https://web.squarecdn.com/v1/square.js';
             script.onload = () => resolve();
             script.onerror = () => reject(new Error('Square SDK failed to load'));
             document.head.appendChild(script);
