@@ -134,7 +134,8 @@ export default function StaffDashboard() {
   const [tableGraph, setTableGraph] = useState<TableGraph | null>(null);
   const [partyOfOneEnabled, setPartyOfOneEnabled] = useState(false);
   const [closedDates, setClosedDates] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'whiteboard' | 'book'>(isMobile ? 'book' : 'whiteboard');
+  const [viewMode, setViewMode] = useState<'whiteboard' | 'book' | 'new'>(isMobile ? 'book' : 'whiteboard');
+  const [allUpcoming, setAllUpcoming] = useState<Reservation[]>([]);
   const [cancelledForDate, setCancelledForDate] = useState<Reservation[]>([]);
   const [mobileCancelledOpen, setMobileCancelledOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -211,6 +212,19 @@ export default function StaffDashboard() {
     fetchConfig();
   }, []);
 
+  const fetchAllUpcoming = async () => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const { data } = await supabase
+      .from('reservations')
+      .select('*')
+      .gte('date', today)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false });
+    if (data) setAllUpcoming(data);
+  };
+
+  useEffect(() => { fetchAllUpcoming(); }, []);
+
   useEffect(() => {
     if (!tableGraph) return;
     let cancelled = false;
@@ -254,6 +268,7 @@ export default function StaffDashboard() {
   }, [selectedDate, tableGraph]);
 
   const refreshReservations = async () => {
+    fetchAllUpcoming();
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const [{ data: resData }, { data: cancelledData }] = await Promise.all([
       supabase.from('reservations').select('*').eq('date', dateStr).neq('status', 'cancelled'),
@@ -688,6 +703,23 @@ export default function StaffDashboard() {
               >
                 <BookOpen className="w-4 h-4" />
                 予約帳
+              </button>
+              <button
+                onClick={() => setViewMode('new')}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-bold transition-all inline-flex items-center gap-2 active:scale-95",
+                  viewMode === 'new' ? "bg-orange text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
+                )}
+              >
+                新規予約
+                {allUpcoming.length > 0 && (
+                  <span className={cn(
+                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                    viewMode === 'new' ? "bg-white/30 text-white" : "bg-orange text-white"
+                  )}>
+                    {allUpcoming.length}
+                  </span>
+                )}
               </button>
             </>
           )}
@@ -1492,7 +1524,7 @@ export default function StaffDashboard() {
                   );
                 })()}
               </motion.div>
-            ) : (
+            ) : viewMode === 'book' ? (
               <motion.div
                 key="book"
                 initial={{ opacity: 0, x: 20 }}
@@ -1617,7 +1649,59 @@ export default function StaffDashboard() {
                 />
                 </div>
               </motion.div>
-            )}
+            ) : viewMode === 'new' ? (
+              <motion.div
+                key="new"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="absolute inset-0 p-4 flex flex-col overflow-y-auto md:p-6 lg:p-8"
+              >
+                <div className="flex justify-between items-end mb-4 border-b-2 border-brown/10 pb-2 shrink-0">
+                  <div>
+                    <h2 className="text-2xl font-bold uppercase tracking-tight">新規予約</h2>
+                    <p className="text-xs opacity-60 font-mono italic font-bold">新しい順に表示</p>
+                  </div>
+                  <button onClick={fetchAllUpcoming} className="text-xs font-bold text-brown/40 hover:text-brown underline">更新</button>
+                </div>
+                <div className="max-w-2xl w-full mx-auto space-y-3">
+                  {allUpcoming.length === 0 ? (
+                    <p className="text-center text-brown/30 py-20 font-bold">新規予約はありません</p>
+                  ) : allUpcoming.map(res => (
+                    <div
+                      key={res.id}
+                      onClick={() => setSelectedRes(res)}
+                      className="bg-white rounded-2xl px-5 py-4 shadow-sm cursor-pointer hover:shadow-md transition-all border border-brown/5"
+                    >
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="min-w-0">
+                          <p className="font-bold text-brown truncate">{res.name}</p>
+                          <p className="text-sm text-brown/60 mt-0.5">{res.date} {res.arrival_time} — {res.party_size}名</p>
+                          {res.course_menu && (
+                            <p className="text-xs text-orange mt-1 font-bold">
+                              コース: {res.course_menu === 'premium' ? 'プレミアム' : 'カジュアル'}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide",
+                            res.status === 'confirmed' && "bg-green-100 text-green-700",
+                            res.status === 'pending' && "bg-yellow-100 text-yellow-700",
+                            res.status === 'seated' && "bg-blue-100 text-blue-700",
+                          )}>
+                            {res.status === 'confirmed' ? '確認済' : res.status === 'pending' ? '仮予約' : '着席'}
+                          </span>
+                          <p className="text-[10px] text-brown/40 mt-1.5 font-mono">
+                            {format(new Date(res.created_at), 'MM/dd HH:mm')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
       </main>
