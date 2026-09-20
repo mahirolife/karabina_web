@@ -704,25 +704,25 @@ export default function StaffDashboard() {
                 <BookOpen className="w-4 h-4" />
                 予約帳
               </button>
-              <button
-                onClick={() => setViewMode('new')}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-bold transition-all inline-flex items-center gap-2 active:scale-95",
-                  viewMode === 'new' ? "bg-orange text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
-                )}
-              >
-                新規予約
-                {allUpcoming.length > 0 && (
-                  <span className={cn(
-                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-                    viewMode === 'new' ? "bg-white/30 text-white" : "bg-orange text-white"
-                  )}>
-                    {allUpcoming.length}
-                  </span>
-                )}
-              </button>
             </>
           )}
+          <button
+            onClick={() => setViewMode('new')}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-bold transition-all inline-flex items-center gap-2 active:scale-95 min-h-[44px] md:min-h-0",
+              viewMode === 'new' ? "bg-orange text-cream shadow-md" : "bg-white text-brown border border-transparent hover:bg-brown/5 hover:border-brown/10"
+            )}
+          >
+            新規予約
+            {allUpcoming.length > 0 && (
+              <span className={cn(
+                "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                viewMode === 'new' ? "bg-white/30 text-white" : "bg-orange text-white"
+              )}>
+                {allUpcoming.length}
+              </span>
+            )}
+          </button>
           <div className="h-6 w-px bg-brown/10 mx-1" />
           <button
             onClick={async () => { await supabase.auth.signOut(); navigate('/staff/login', { replace: true }); }}
