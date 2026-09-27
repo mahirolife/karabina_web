@@ -1553,7 +1553,7 @@ export default function StaffDashboard() {
                         <div className="flex items-center justify-between mb-3 sticky top-0 bg-[#f8f5f2]/95 backdrop-blur-sm z-10 py-2 md:static md:bg-transparent md:py-0">
                           <div>
                             <h3 className="text-sm font-bold bg-brown text-cream px-3 py-1 rounded inline-block self-start">
-                              {cycleNum === 1 ? '1部 (18:00 - 20:30)' : '2部 (21:00 - 閉店)'}
+                              {cycleNum === 1 ? '1部 (18:00 - 20:00)' : '2部 (20:00 - 閉店)'}
                             </h3>
                             {courseCounts[cycleNum] > 0 && (
                               <p className={cn(
@@ -1670,7 +1670,13 @@ export default function StaffDashboard() {
                   ) : allUpcoming.map(res => (
                     <div
                       key={res.id}
-                      onClick={() => setSelectedRes(res)}
+                      onClick={() => {
+                        const resDate = new Date(res.date);
+                        if (format(resDate, 'yyyy-MM-dd') !== format(selectedDate, 'yyyy-MM-dd')) {
+                          setSelectedDate(resDate);
+                        }
+                        setSelectedRes(res);
+                      }}
                       className="bg-white rounded-2xl px-5 py-4 shadow-sm cursor-pointer hover:shadow-md transition-all border border-brown/5"
                     >
                       <div className="flex justify-between items-start gap-3">
