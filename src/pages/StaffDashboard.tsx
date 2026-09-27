@@ -1,5 +1,6 @@
 import {
   format,
+  parseISO,
   addDays,
   subDays,
   startOfMonth,
@@ -847,7 +848,7 @@ export default function StaffDashboard() {
                 <div className="bg-cream/30 p-4 rounded-2xl">
                   <p className="text-[10px] uppercase font-bold opacity-40 mb-1">予約日</p>
                   <p className="text-sm font-bold">
-                    {format(new Date(selectedRes.date), 'yyyy年M月d日 (eee)', { locale: ja })}
+                    {format(parseISO(selectedRes.date), 'yyyy年M月d日 (eee)', { locale: ja })}
                     {' '}— サイクル {selectedRes.cycle}
                   </p>
                 </div>
@@ -1151,7 +1152,7 @@ export default function StaffDashboard() {
                 <div>
                   <h3 className="text-2xl font-bold tracking-tighter mb-1">{chargeRes.name}</h3>
                   <p className="text-xs font-mono opacity-60 uppercase tracking-widest">
-                    {format(new Date(chargeRes.date), 'M月d日 (eee)', { locale: ja })}
+                    {format(parseISO(chargeRes.date), 'M月d日 (eee)', { locale: ja })}
                     {' '}· {chargeRes.cycle === 1 ? '1部' : '2部'} {chargeRes.arrival_time}
                   </p>
                 </div>
@@ -1671,7 +1672,7 @@ export default function StaffDashboard() {
                     <div
                       key={res.id}
                       onClick={() => {
-                        const resDate = new Date(res.date);
+                        const resDate = parseISO(res.date);
                         if (format(resDate, 'yyyy-MM-dd') !== format(selectedDate, 'yyyy-MM-dd')) {
                           setSelectedDate(resDate);
                         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { parseISO } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Mail, Phone, Users, Calendar, Clock, MessageSquare, Check, AlertCircle, ShieldCheck, UtensilsCrossed } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -341,7 +342,7 @@ export default function BookingPage() {
         setError('Reservations cannot be made more than 3 months in advance. / 3ヶ月以上先のご予約はお受けできません。');
         return;
       }
-      const selectedMonth = new Date(formData.date).getMonth();
+      const selectedMonth = parseISO(formData.date).getMonth();
       if (selectedMonth >= 3 && selectedMonth <= 10) {
         setError('Karabina is only open December through March. / カラビナは12月〜3月のみ営業しています。');
         return;
@@ -427,7 +428,7 @@ export default function BookingPage() {
   const courseDeadlinePassed = (() => {
     if (!formData.date) return true;
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const resDate = new Date(formData.date);
+    const resDate = parseISO(formData.date);
     return Math.floor((resDate.getTime() - today.getTime()) / 86400000) < 3;
   })();
   const courseAvailableForCycle =
