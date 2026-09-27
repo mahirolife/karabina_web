@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://karabina-niseko.com/</loc>
+    <loc>https://www.karabina-niseko.com/</loc>
     <priority>1.0</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://karabina-niseko.com/menu</loc>
+    <loc>https://www.karabina-niseko.com/menu</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://karabina-niseko.com/booking</loc>
+    <loc>https://www.karabina-niseko.com/booking</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
