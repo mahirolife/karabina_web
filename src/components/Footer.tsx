@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Phone } from 'lucide-react';
+import { Instagram, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -28,6 +28,10 @@ export function Footer() {
               <a href="tel:0136502850" className="hover:opacity-70 transition-opacity font-bold flex items-center gap-2">
                 <Phone className="w-3 h-3 md:w-4 md:h-4" />
                 0136-50-2850
+              </a>
+              <a href="mailto:karabina.niseko@gmail.com" className="hover:opacity-70 transition-opacity font-bold flex items-center gap-2 normal-case">
+                <Mail className="w-3 h-3 md:w-4 md:h-4" />
+                karabina.niseko@gmail.com
               </a>
             </div>
             <div className="flex justify-center pt-2">
