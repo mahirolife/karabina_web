@@ -46,8 +46,8 @@ export default function CancelPage() {
     try {
       const { error: resError } = await supabase
         .from('reservations')
-        .update({ status: 'cancelled' })
-        .eq('id', reservation.id);
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('cancellation_token', token);
       if (resError) throw resError;
 
       // Delete the assignment so the table slot re-opens
