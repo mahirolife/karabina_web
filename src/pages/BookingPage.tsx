@@ -220,19 +220,12 @@ export default function BookingPage() {
     setFormData(prev => ({ ...prev, time, cycle, course: '' }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.policyAgreed) {
-      if (DEV_MODE) {
-        setPaymentToken('dev-token-bypass');
-      } else if (paymentFormRef.current) {
-        const token = await paymentFormRef.current.tokenize();
-        if (!token) return;
-        setPaymentToken(token);
-      }
-    }
-
+    // The Square payment token is single-use and is minted at Confirm time
+    // (in confirmReservation), so every attempt — including retries — gets a
+    // fresh token. Here we only advance to the review step. The card fields are
+    // already validated via `cardReady` (part of isFormValid).
     setStep('summary');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -418,6 +411,24 @@ export default function BookingPage() {
         return;
       }
 
+      // Mint a FRESH single-use payment token right before saving the card.
+      // Square tokens are burnt on use (success or failure), so re-tokenizing
+      // here guarantees every Confirm — including a retry after a failed attempt
+      // — sends a valid, unused token.
+      let freshToken: string | null;
+      if (DEV_MODE) {
+        freshToken = 'dev-token-bypass';
+      } else if (paymentFormRef.current) {
+        freshToken = await paymentFormRef.current.tokenize();
+        if (!freshToken) {
+          setError('Please re-check your card details and try again. / カード情報をご確認の上、もう一度お試しください。');
+          return;
+        }
+      } else {
+        setError('The payment form could not be loaded. Please refresh the page and try again. / 決済フォームを読み込めませんでした。ページを更新してください。');
+        return;
+      }
+
       await doInsert({
         name: formData.fullName,
         email: formData.email,
@@ -430,7 +441,7 @@ export default function BookingPage() {
         notes: formData.specialRequests || null,
         shared_table: false,
         shared_table_consent: false,
-        square_card_token: paymentToken,
+        square_card_token: freshToken,
         cancellation_token: crypto.randomUUID(),
         course_menu: (formData.course as 'casual' | 'premium') || null,
         course_guest_count: formData.course ? partySize : null,
@@ -460,7 +471,8 @@ export default function BookingPage() {
     formData.phone.trim() !== '' &&
     formData.date !== '' &&
     formData.time !== '' &&
-    formData.policyAgreed;
+    formData.policyAgreed &&
+    cardReady;
 
   if (step === 'success') {
     return (
