@@ -246,24 +246,42 @@ export default function BookingPage() {
     course_menu?: 'casual' | 'premium' | null;
     course_guest_count?: number | null;
   }) => {
-    const cleanedRow = reservationRow.square_card_token === 'dev-token-bypass'
+    const isDevBypass = reservationRow.square_card_token === 'dev-token-bypass';
+    const token = isDevBypass ? null : reservationRow.square_card_token;
+    const cleanedRow = isDevBypass
       ? { ...reservationRow, square_card_token: null }
       : reservationRow;
 
+    const CARD_INVALID =
+      'Your card could not be verified. Please check your card number, expiry, and CVV, then go back and re-enter your card. / カードを確認できませんでした。カード番号・有効期限・CVVをご確認の上、戻って再入力してください。';
+    const CARD_UNVERIFIED =
+      'We could not reach our payment processor to verify your card. Please try again in a moment. / 決済処理に接続できませんでした。少し時間をおいて再度お試しください。';
+
+    // Card save is blocking: a fake/invalid card must stop the booking, not slip through.
     let cardOnFile: { square_customer_id: string; square_card_id: string } | null = null;
-    if (cleanedRow.square_card_token) {
+    if (token) {
+      let cardRes: Response;
       try {
-        const cardRes = await fetch('/api/square/save-card', {
+        cardRes = await fetch('/api/square/save-card', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            nonce: cleanedRow.square_card_token,
+            nonce: token,
             name: cleanedRow.name,
             email: cleanedRow.email,
           }),
         });
-        if (cardRes.ok) cardOnFile = await cardRes.json();
-      } catch { /* non-blocking — booking proceeds even if card save fails */ }
+      } catch {
+        throw new Error(CARD_UNVERIFIED);
+      }
+      if (!cardRes.ok) {
+        // 400 INVALID_CARD_DATA from Square → fake/invalid card; 5xx → processor issue
+        throw new Error(cardRes.status >= 500 ? CARD_UNVERIFIED : CARD_INVALID);
+      }
+      cardOnFile = await cardRes.json();
+    } else if (!isDevBypass) {
+      // No token outside dev bypass → never insert a reservation without a card on file
+      throw new Error(CARD_INVALID);
     }
 
     const rowToInsert = cardOnFile ? { ...cleanedRow, ...cardOnFile } : cleanedRow;
