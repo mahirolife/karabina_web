@@ -245,6 +245,12 @@ export default function StaffDashboard() {
         .order('cancelled_at', { ascending: false });
       if (!cancelled) setCancelledForDate(cancelledData ?? []);
 
+      // Clean up stale assignments from cancelled reservations before Phase 2
+      const cancelledIds = (cancelledData ?? []).map((r: Reservation) => r.id);
+      if (cancelledIds.length > 0) {
+        await supabase.from('table_assignments').delete().in('reservation_id', cancelledIds);
+      }
+
       if (resList.length > 0) {
         await runPhase2Optimization(dateStr, resList, tableGraph, supabase);
         if (cancelled) return;
@@ -278,6 +284,10 @@ export default function StaffDashboard() {
     ]);
     const resList: Reservation[] = resData ?? [];
     setCancelledForDate(cancelledData ?? []);
+    const cancelledIds = (cancelledData ?? []).map((r: Reservation) => r.id);
+    if (cancelledIds.length > 0) {
+      await supabase.from('table_assignments').delete().in('reservation_id', cancelledIds);
+    }
     if (resList.length > 0) {
       if (tableGraph) {
         await runPhase2Optimization(dateStr, resList, tableGraph, supabase);
