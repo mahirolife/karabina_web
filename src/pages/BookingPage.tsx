@@ -471,8 +471,7 @@ export default function BookingPage() {
     formData.phone.trim() !== '' &&
     formData.date !== '' &&
     formData.time !== '' &&
-    formData.policyAgreed &&
-    cardReady;
+    formData.policyAgreed;
 
   if (step === 'success') {
     return (
