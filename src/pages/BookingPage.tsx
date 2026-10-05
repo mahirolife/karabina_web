@@ -74,6 +74,10 @@ export default function BookingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentToken, setPaymentToken] = useState<string | null>(null);
   const [cardReady, setCardReady] = useState(DEV_MODE);
+  // Bumping this remounts SquarePaymentForm, giving a fresh Square card element.
+  // A Square card instance can't be re-tokenized after a failed attempt, so we
+  // recreate it after every failed confirm (same effect as reloading the page).
+  const [cardFormKey, setCardFormKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [graph, setGraph] = useState<TableGraph | null>(null);
   const [isDateClosed, setIsDateClosed] = useState(false);
@@ -299,6 +303,12 @@ export default function BookingPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Remount the Square card element (fresh instance) and reset its ready state.
+  const resetCardField = () => {
+    setCardFormKey(k => k + 1);
+    setCardReady(false);
+  };
+
   const confirmReservation = async () => {
     setIsSubmitting(true);
     setError(null);
@@ -422,6 +432,7 @@ export default function BookingPage() {
         freshToken = await paymentFormRef.current.tokenize();
         if (!freshToken) {
           setError('Please re-check your card details and try again. / カード情報をご確認の上、もう一度お試しください。');
+          resetCardField();
           return;
         }
       } else {
@@ -448,6 +459,9 @@ export default function BookingPage() {
       });
     } catch (err: any) {
       setError(err.message ?? 'An unexpected error occurred.');
+      // A Square card element can't be re-tokenized after a failed attempt —
+      // recreate it so the next Confirm (after going Back) uses a clean element.
+      resetCardField();
     } finally {
       setIsSubmitting(false);
     }
@@ -1013,6 +1027,7 @@ export default function BookingPage() {
                         </div>
                       ) : (
                         <SquarePaymentForm
+                          key={cardFormKey}
                           ref={paymentFormRef}
                           applicationId={SQUARE_APP_ID}
                           locationId={SQUARE_LOCATION_ID}
